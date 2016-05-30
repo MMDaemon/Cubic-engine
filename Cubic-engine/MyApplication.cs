@@ -5,28 +5,33 @@ namespace Cubic_engine
 {
 	class MyApplication
 	{
-		private GameWindow gameWindow = new GameWindow();
+		private GameWindow gameWindow;
+		private Renderer renderer;
+
+		private MyApplication()
+		{
+			gameWindow = new GameWindow();
+			renderer = new Renderer();
+
+			gameWindow.Resize += GameWindow_Resize;
+			gameWindow.RenderFrame += GameWindow_RenderFrame;
+			gameWindow.RenderFrame += (sender, e) => { gameWindow.SwapBuffers(); };
+		}
 
 		static void Main(string[] args)
 		{
 			var app = new MyApplication();
-			app.Run();
+			app.gameWindow.Run(60, 60);
 		}
 
-		private MyApplication()
+		private void GameWindow_Resize(object sender, System.EventArgs e)
 		{
-			gameWindow.RenderFrame += game_RenderFrame;
+			renderer.ResizeWindow(gameWindow.Width, gameWindow.Height);
 		}
 
-		private void Run()
+		private void GameWindow_RenderFrame(object sender, FrameEventArgs e)
 		{
-			gameWindow.Run(60);
-		}
-
-		private void game_RenderFrame(object sender, FrameEventArgs e)
-		{
-			GL.Clear(ClearBufferMask.ColorBufferBit);
-			gameWindow.SwapBuffers();
+			renderer.RenderDisplay();
 		}
 	}
 }

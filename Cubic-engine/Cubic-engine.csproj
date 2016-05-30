@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="MyApplication.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Renderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
