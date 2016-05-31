@@ -6,23 +6,28 @@ using CubicEngine.Utils;
 
 namespace CubicEngine.Model
 {
-	class MaterialList : IEnumerable
+	class MaterialList
 	{
 		private Dictionary<MaterialType, int> _materials;
 
+		/// <summary>
+		/// Constructor of the MaterialList.
+		/// </summary>
 		public MaterialList()
 		{
 			_materials = new Dictionary<MaterialType, int>();
 		}
 
-		public IEnumerator GetEnumerator()
+		/// <summary>
+		/// Adds the amount of the material of specified type to the MaterialList if possible.
+		/// </summary>
+		/// <param name="type">type of the material to add.</param>
+		/// <param name="amount">amount of the material to add. Can not be 0.</param>
+		/// <returns>If the action was sucessfull.</returns>
+		public bool Add(MaterialType type, int amount)
 		{
-			return _materials.GetEnumerator();
-		}
-
-		public void Add(MaterialType type, int amount)
-		{
-			if (CurrentAmount + amount <= Constants.MAX_AMOUNT)
+			bool possible = amount != 0 && CurrentAmount + amount <= Constants.MAX_AMOUNT;
+			if (possible)
 			{
 				if (_materials.ContainsKey(type))
 				{
@@ -33,15 +38,19 @@ namespace CubicEngine.Model
 					_materials.Add(type, amount);
 				}
 			}
-			else
-			{
-				throw new Exception("Not enough space");
-			}
+			return possible;
 		}
 
-		public void Remove(MaterialType type, int amount)
+		/// <summary>
+		/// Removes the amount of the material of specified type from the MaterialList if possible.
+		/// </summary>
+		/// <param name="type">type of the material to remove.</param>
+		/// <param name="amount">amount of the material to remove.</param>
+		/// <returns>If the action was sucessfull.</returns>
+		public bool Remove(MaterialType type, int amount)
 		{
-			if (_materials.ContainsKey(type) && _materials[type] >= amount)
+			bool possible = _materials.ContainsKey(type) && _materials[type] >= amount;
+			if (possible)
 			{
 				_materials[type] -= amount;
 				if (_materials[type] == 0)
@@ -49,13 +58,21 @@ namespace CubicEngine.Model
 					_materials.Remove(type);
 				}
 			}
+			return possible;
 		}
 
-		public float this[MaterialType type]
+		public int this[MaterialType type]
 		{
 			get
 			{
-				return _materials[type];
+				int amount = 0;
+
+				if (_materials.ContainsKey(type))
+				{
+					amount = _materials[type];
+				}
+
+				return amount;
 			}
 		}
 

@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CubicEngine.Model
+﻿namespace CubicEngine.Model
 {
 	class Voxel
 	{
 		private MaterialList _materials;
 
+		/// <summary>
+		/// Constructor of the Voxel.
+		/// </summary>
 		public Voxel()
 		{
 			_materials = new MaterialList();

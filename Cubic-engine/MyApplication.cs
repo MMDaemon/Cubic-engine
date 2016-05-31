@@ -1,4 +1,5 @@
-﻿using CubicEngine.View;
+﻿using CubicEngine.Model;
+using CubicEngine.View;
 using OpenTK;
 
 namespace CubicEngine
@@ -20,6 +21,7 @@ namespace CubicEngine
 
 		static void Main(string[] args)
 		{
+			new Voxel();
 			var app = new MyApplication();
 			app.gameWindow.Run(60, 60);
 		}
