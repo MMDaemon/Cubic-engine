@@ -10,6 +10,11 @@ namespace CubicEngine.Model
 	{
 		private Dictionary<MaterialType, int> _materials;
 
+		public MaterialList()
+		{
+			_materials = new Dictionary<MaterialType, int>();
+		}
+
 		public IEnumerator GetEnumerator()
 		{
 			return _materials.GetEnumerator();
