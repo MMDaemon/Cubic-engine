@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cubic_engine
+namespace CubicEngine.View
 {
 	class Renderer
 	{

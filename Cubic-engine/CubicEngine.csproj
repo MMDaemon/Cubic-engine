@@ -7,8 +7,8 @@
     <ProjectGuid>{720E0C40-0702-4AD4-B210-838BEAAD4A00}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Cubic_engine</RootNamespace>
-    <AssemblyName>Cubic-engine</AssemblyName>
+    <RootNamespace>CubicEngine</RootNamespace>
+    <AssemblyName>CubicEngine</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -48,14 +48,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Utils\Constants.cs" />
+    <Compile Include="Utils\Enums\MaterialType.cs" />
+    <Compile Include="Model\MaterialList.cs" />
+    <Compile Include="Model\Voxel.cs" />
     <Compile Include="MyApplication.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Renderer.cs" />
+    <Compile Include="View\Renderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Controller\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

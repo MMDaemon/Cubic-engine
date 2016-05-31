@@ -1,7 +1,7 @@
-﻿using OpenTK;
-using OpenTK.Graphics.OpenGL;
+﻿using CubicEngine.View;
+using OpenTK;
 
-namespace Cubic_engine
+namespace CubicEngine
 {
 	class MyApplication
 	{

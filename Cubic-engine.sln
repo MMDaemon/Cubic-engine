@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cubic-engine", "Cubic-engine\Cubic-engine.csproj", "{720E0C40-0702-4AD4-B210-838BEAAD4A00}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CubicEngine", "Cubic-engine\CubicEngine.csproj", "{720E0C40-0702-4AD4-B210-838BEAAD4A00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
