@@ -1,12 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System;
 using CubicEngine.Utils.Enums;
 using CubicEngine.Utils;
 
 namespace CubicEngine.Model
 {
-	class MaterialList
+	class MaterialList : IEnumerable
 	{
 		private Dictionary<MaterialType, int> _materials;
 
@@ -26,7 +25,7 @@ namespace CubicEngine.Model
 		/// <returns>If the action was sucessfull.</returns>
 		public bool Add(MaterialType type, int amount)
 		{
-			bool possible = amount != 0 && CurrentAmount + amount <= Constants.MAX_AMOUNT;
+			bool possible = amount != 0 && Amount + amount <= Constants.MAX_AMOUNT;
 			if (possible)
 			{
 				if (_materials.ContainsKey(type))
@@ -61,6 +60,11 @@ namespace CubicEngine.Model
 			return possible;
 		}
 
+		public IEnumerator GetEnumerator()
+		{
+			return _materials.GetEnumerator();
+		}
+
 		public int this[MaterialType type]
 		{
 			get
@@ -76,7 +80,7 @@ namespace CubicEngine.Model
 			}
 		}
 
-		public int CurrentAmount
+		public int Amount
 		{
 			get
 			{

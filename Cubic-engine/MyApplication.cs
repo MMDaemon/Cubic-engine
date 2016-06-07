@@ -8,11 +8,13 @@ namespace CubicEngine
 	{
 		private GameWindow gameWindow;
 		private Renderer renderer;
+		private EngineModel model;
 
 		private MyApplication()
 		{
 			gameWindow = new GameWindow();
 			renderer = new Renderer();
+			model = new EngineModel();
 
 			gameWindow.Resize += GameWindow_Resize;
 			gameWindow.RenderFrame += GameWindow_RenderFrame;
@@ -21,7 +23,6 @@ namespace CubicEngine
 
 		static void Main(string[] args)
 		{
-			new Voxel();
 			var app = new MyApplication();
 			app.gameWindow.Run(60, 60);
 		}
@@ -33,7 +34,7 @@ namespace CubicEngine
 
 		private void GameWindow_RenderFrame(object sender, FrameEventArgs e)
 		{
-			renderer.RenderDisplay();
+			renderer.Render(model.World);
 		}
 	}
 }

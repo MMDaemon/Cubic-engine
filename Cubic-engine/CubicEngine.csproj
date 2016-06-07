@@ -48,6 +48,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\EngineModel.cs" />
+    <Compile Include="Model\World.cs" />
     <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\Enums\MaterialType.cs" />
     <Compile Include="Model\MaterialList.cs" />

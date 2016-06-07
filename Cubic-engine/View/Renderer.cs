@@ -1,10 +1,7 @@
-﻿using OpenTK;
+﻿using CubicEngine.Model;
+using CubicEngine.Utils;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CubicEngine.View
 {
@@ -19,7 +16,7 @@ namespace CubicEngine.View
 
 		public void ResizeWindow(int width, int height)
 		{
-			Matrix4 perspective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, width / height, 0.1f, 200);
+			Matrix4 perspective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, width / height, 0.1f, 500);
 			//Set perspective
 			GL.MatrixMode(MatrixMode.Projection);
 			GL.LoadIdentity();
@@ -27,19 +24,37 @@ namespace CubicEngine.View
 			GL.Viewport(0, 0, width, height);
 		}
 
-		public void RenderDisplay()
+		public void Render(World world)
 		{
 			GL.Clear(ClearBufferMask.ColorBufferBit);
 			GL.Clear(ClearBufferMask.DepthBufferBit);
 
-			Matrix4 lookAt = Matrix4.LookAt(new Vector3(2, 2, 5), Vector3.Zero, Vector3.UnitY);
+			Matrix4 lookAt = Matrix4.LookAt(new Vector3(200, 200, 150), Vector3.Zero, Vector3.UnitY);
 			//Set Camera
 			GL.MatrixMode(MatrixMode.Modelview);
 			GL.LoadIdentity();
 			GL.LoadMatrix(ref lookAt);
 
 			//Draw the scene
-			DrawCube(1, new Vector3(0, 0, 0), new Vector4(1, 1, 1, 0));
+			//DrawCube(1, new Vector3(0, 0, 0), new Vector4(1, 1, 1, 0));
+			DrawWorld(world);
+		}
+
+		private void DrawWorld(World world)
+		{
+			for(int x =0; x < World.size; x++)
+			{
+				for (int y = 0; y < World.size; y++)
+				{
+					for (int z = 0; z < World.size; z++)
+					{
+						if (world[x, y, z].Materials.Amount >= Constants.MAX_AMOUNT)
+						{
+							DrawCube(1, new Vector3(x, y, z), new Vector4(1, 1, 1, 0));
+						}
+					}
+				}
+			}
 		}
 
 		private void DrawCube(float size, Vector3 position, Vector4 color)
@@ -59,7 +74,6 @@ namespace CubicEngine.View
 			GL.PushMatrix();
 
 			GL.Color4(color);
-			GL.PolygonMode(MaterialFace.Front, PolygonMode.Line);
 			GL.Begin(PrimitiveType.Quads);
 
 			//Top face
