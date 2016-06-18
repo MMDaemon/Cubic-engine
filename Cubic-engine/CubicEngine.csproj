@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\EngineModel.cs" />
+    <Compile Include="Model\Material.cs" />
     <Compile Include="Model\World.cs" />
     <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\Enums\MaterialType.cs" />
@@ -62,6 +63,8 @@
     <None Include="App.config" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
+    <None Include="Resources\fragment.glsl" />
+    <None Include="Resources\vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controller\" />

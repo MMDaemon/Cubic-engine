@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using CubicEngine.Utils.Enums;
 using CubicEngine.Utils;
+using System;
 
 namespace CubicEngine.Model
 {
@@ -62,7 +63,12 @@ namespace CubicEngine.Model
 
 		public IEnumerator GetEnumerator()
 		{
-			return _materials.GetEnumerator();
+			List<Material> materials = new List<Material>();
+			foreach (KeyValuePair<MaterialType, int> material in _materials)
+			{
+				materials.Add(new Material(material.Key, material.Value));
+			}
+			return materials.GetEnumerator();
 		}
 
 		public int this[MaterialType type]
@@ -85,9 +91,9 @@ namespace CubicEngine.Model
 			get
 			{
 				int currentAmount = 0;
-				foreach (KeyValuePair<MaterialType, int> material in _materials)
+				foreach (int amount in _materials.Values)
 				{
-					currentAmount += material.Value;
+					currentAmount += amount;
 				}
 				return currentAmount;
 			}

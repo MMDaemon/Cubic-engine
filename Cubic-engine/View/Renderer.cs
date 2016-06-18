@@ -42,11 +42,11 @@ namespace CubicEngine.View
 
 		private void DrawWorld(World world)
 		{
-			for(int x =0; x < World.size; x++)
+			for(int x =0; x < World.SIZE.X; x++)
 			{
-				for (int y = 0; y < World.size; y++)
+				for (int y = 0; y < World.SIZE.Y; y++)
 				{
-					for (int z = 0; z < World.size; z++)
+					for (int z = 0; z < World.SIZE.Z; z++)
 					{
 						if (world[x, y, z].Materials.Amount >= Constants.MAX_AMOUNT)
 						{
