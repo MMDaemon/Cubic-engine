@@ -18,6 +18,19 @@ namespace CubicEngine.Model
 			_materials = new Dictionary<MaterialType, int>();
 		}
 
+		public int Amount
+		{
+			get
+			{
+				int currentAmount = 0;
+				foreach (int amount in _materials.Values)
+				{
+					currentAmount += amount;
+				}
+				return currentAmount;
+			}
+		}
+
 		/// <summary>
 		/// Adds the amount of the material of specified type to the MaterialList if possible.
 		/// </summary>
@@ -83,19 +96,6 @@ namespace CubicEngine.Model
 				}
 
 				return amount;
-			}
-		}
-
-		public int Amount
-		{
-			get
-			{
-				int currentAmount = 0;
-				foreach (int amount in _materials.Values)
-				{
-					currentAmount += amount;
-				}
-				return currentAmount;
 			}
 		}
 	}

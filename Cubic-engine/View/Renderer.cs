@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using CubicEngine.Model;
 using CubicEngine.Resources;
@@ -20,11 +19,12 @@ namespace CubicEngine.View
 
 		public CameraOrbit Camera { get; } = new CameraOrbit();
 
-		public Renderer(World world)
+		public Renderer(Chunk world)
 		{
 
 			Camera.FarClip = 500;
 			Camera.Distance = 30;
+			Camera.Target = Constants.ChunkSize / 2;
 
 			var sVertex = Encoding.UTF8.GetString(Shaders.vertex);
 			var sFragment = Encoding.UTF8.GetString(Shaders.fragment);
@@ -61,7 +61,7 @@ namespace CubicEngine.View
 			GL.UniformMatrix4(_shader.GetUniformLocation("camera"), true, ref cam);
 
 			_cube.Draw(_particleCount);
-			
+
 			_shader.End();
 		}
 
@@ -74,19 +74,19 @@ namespace CubicEngine.View
 			return vao;
 		}
 
-		private void CreateCubeInstances(World world, VertexArrayObject vao, Shader shader)
+		private void CreateCubeInstances(Chunk chunk, VertexArrayObject vao, Shader shader)
 		{
 			List<Vector3> instancePositions = new List<Vector3>();
-			for (int x = 0; x < World.Size.X; x++)
+			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
-				for (int y = 0; y < World.Size.Y; y++)
+				for (int y = 0; y < Constants.ChunkSize.Y; y++)
 				{
-					for (int z = 0; z < World.Size.Z; z++)
+					for (int z = 0; z < Constants.ChunkSize.Z; z++)
 					{
-						if (world[x, y, z].Materials.Amount >= Constants.MaxAmount)
+						if (chunk[x, y, z].Materials.Amount >= Constants.MaxAmount)
 						{
 							_particleCount++;
-							instancePositions.Add(new Vector3(x,y,z));
+							instancePositions.Add(new Vector3(x, y, z));
 						}
 					}
 				}

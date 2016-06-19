@@ -4,9 +4,9 @@
 	{
 		public EngineModel()
 		{
-			World = new World();
+			World = new Chunk();
 		}
 
-		public World World { get;}
+		public Chunk World { get; private set; }
 	}
 }

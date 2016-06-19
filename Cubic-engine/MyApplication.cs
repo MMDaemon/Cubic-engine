@@ -8,8 +8,8 @@ namespace CubicEngine
 	internal class MyApplication
 	{
 		private readonly GameWindow _gameWindow;
-		private readonly Renderer _renderer;
 		private readonly EngineModel _model;
+		private readonly Renderer _renderer;
 
 		private MyApplication()
 		{

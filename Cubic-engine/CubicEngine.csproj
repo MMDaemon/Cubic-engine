@@ -52,7 +52,7 @@
   <ItemGroup>
     <Compile Include="Model\EngineModel.cs" />
     <Compile Include="Model\Material.cs" />
-    <Compile Include="Model\World.cs" />
+    <Compile Include="Model\Chunk.cs" />
     <Compile Include="Resources\Shaders.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

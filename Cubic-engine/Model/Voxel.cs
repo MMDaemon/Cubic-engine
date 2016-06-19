@@ -12,7 +12,6 @@
 
 		public bool Surface { get; set; }
 
-
 		public MaterialList Materials { get; }
 	}
 }
