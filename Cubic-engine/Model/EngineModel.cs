@@ -1,6 +1,6 @@
 ﻿namespace CubicEngine.Model
 {
-	class EngineModel
+	internal class EngineModel
 	{
 		public EngineModel()
 		{

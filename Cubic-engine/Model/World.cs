@@ -5,34 +5,28 @@ using System;
 
 namespace CubicEngine.Model
 {
-	class World
+	internal class World
 	{
-		public static readonly Vector3 SIZE = new Vector3(150, 150, 150);
-		Voxel[,,] voxels;
-		Random random = new Random();
+		public static readonly Vector3 Size = new Vector3(150, 150, 150);
+		readonly Voxel[,,] _voxels;
+		readonly Random _random = new Random();
 
 		public World()
 		{
-			voxels = new Voxel[(int)SIZE.X, (int)SIZE.Y, (int)SIZE.Z];
-			for (int x = 0; x < SIZE.X; x++)
+			_voxels = new Voxel[(int)Size.X, (int)Size.Y, (int)Size.Z];
+			for (int x = 0; x < Size.X; x++)
 			{
-				for (int y = 0; y < SIZE.Y; y++)
+				for (int y = 0; y < Size.Y; y++)
 				{
-					for (int z = 0; z < SIZE.Z; z++)
+					for (int z = 0; z < Size.Z; z++)
 					{
-						voxels[x, y, z] = new Voxel();
-						voxels[x, y, z].Materials.Add(MaterialType.DIRT, random.Next(Constants.MAX_AMOUNT+1));
+						_voxels[x, y, z] = new Voxel();
+						_voxels[x, y, z].Materials.Add(MaterialType.Dirt, _random.Next(Constants.MaxAmount+1));
 					}
 				}
 			}
 		}
 
-		public Voxel this[int x, int y, int z]
-		{
-			get
-			{
-				return voxels[x, y, z];
-			}
-		}
+		public Voxel this[int x, int y, int z] => _voxels[x, y, z];
 	}
 }

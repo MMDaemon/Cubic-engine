@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace CubicEngine.Utils.Enums
 {
-	enum MaterialType
+	internal enum MaterialType
 	{
-		STONE, DIRT
+		Stone, Dirt
 	}
 }

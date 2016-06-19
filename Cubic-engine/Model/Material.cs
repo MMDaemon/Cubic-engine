@@ -7,27 +7,16 @@ using System.Threading.Tasks;
 
 namespace CubicEngine.Model
 {
-	class Material
+	internal class Material
 	{
-		private MaterialType _type;
-
-		private int _amount;
-
-
 		public Material(MaterialType type, int amount)
 		{
-			_type = type;
-			_amount = amount;
+			Type = type;
+			Amount = amount;
 		}
 
-		public MaterialType Type
-		{
-			get { return _type; }
-		}
+		public MaterialType Type { get; }
 
-		public int Amount
-		{
-			get { return _amount; }
-		}
+		public int Amount { get; }
 	}
 }

@@ -1,23 +1,18 @@
 ﻿namespace CubicEngine.Model
 {
-	class Voxel
+	internal class Voxel
 	{
-		private MaterialList _materials;
-
 		/// <summary>
 		/// Constructor of the Voxel.
 		/// </summary>
 		public Voxel()
 		{
-			_materials = new MaterialList();
+			Materials = new MaterialList();
 		}
 
 		public bool Surface { get; set; }
-		
 
-		public MaterialList Materials
-		{
-			get { return _materials; }
-		}
+
+		public MaterialList Materials { get; }
 	}
 }

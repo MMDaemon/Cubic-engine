@@ -6,9 +6,9 @@ using System;
 
 namespace CubicEngine.Model
 {
-	class MaterialList : IEnumerable
+	internal class MaterialList : IEnumerable
 	{
-		private Dictionary<MaterialType, int> _materials;
+		private readonly Dictionary<MaterialType, int> _materials;
 
 		/// <summary>
 		/// Constructor of the MaterialList.
@@ -26,7 +26,7 @@ namespace CubicEngine.Model
 		/// <returns>If the action was sucessfull.</returns>
 		public bool Add(MaterialType type, int amount)
 		{
-			bool possible = amount != 0 && Amount + amount <= Constants.MAX_AMOUNT;
+			bool possible = amount != 0 && Amount + amount <= Constants.MaxAmount;
 			if (possible)
 			{
 				if (_materials.ContainsKey(type))

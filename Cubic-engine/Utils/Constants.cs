@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace CubicEngine.Utils
 {
-	static class Constants
+	internal static class Constants
 	{
-		public const int MAX_AMOUNT = 64;
+		public const int MaxAmount = 64;
 	}
 }
