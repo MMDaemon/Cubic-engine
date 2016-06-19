@@ -30,9 +30,8 @@ namespace CubicEngine.View
 			var sFragment = Encoding.UTF8.GetString(Shaders.fragment);
 			_shader = ShaderLoader.FromStrings(sVertex, sFragment);
 
-			_cube = CreateVertexArrayObject();
+			_cube = CreateVertexArrayObject(new Cube(1));
 
-			//CreateCube(_cube, _shader);
 			CreateCubeInstances(world, _cube, _shader);
 
 			GL.Enable(EnableCap.CullFace);
@@ -66,38 +65,13 @@ namespace CubicEngine.View
 			_shader.End();
 		}
 
-		private void DrawWorld(World world)
+		private VertexArrayObject CreateVertexArrayObject(Mesh mesh)
 		{
-			for(int x =0; x < World.Size.X; x++)
-			{
-				for (int y = 0; y < World.Size.Y; y++)
-				{
-					for (int z = 0; z < World.Size.Z; z++)
-					{
-						if (world[x, y, z].Materials.Amount >= Constants.MaxAmount)
-						{
-							DrawCube(1, new Vector3(x, y, z), new Vector4(1, 1, 1, 0));
-						}
-					}
-				}
-			}
-		}
-
-		private VertexArrayObject CreateVertexArrayObject()
-		{
-			Mesh mesh = new Cube(1);
 			var vao = new VertexArrayObject();
 			vao.SetAttribute(_shader.GetAttributeLocation("position"), mesh.Positions.ToArray(), VertexAttribPointerType.Float, 3);
 			vao.SetAttribute(_shader.GetAttributeLocation("normal"), mesh.Normals.ToArray(), VertexAttribPointerType.Float, 3);
 			vao.SetId(mesh.Ids.ToArray(), PrimitiveType.Triangles);
 			return vao;
-		}
-
-		private void CreateCube(VertexArrayObject vao, Shader shader)
-		{
-			_particleCount++;
-			Vector3[] instancePositions = {new Vector3(0,0,0)};
-			vao.SetAttribute(shader.GetAttributeLocation("instancePosition"), instancePositions , VertexAttribPointerType.Float, 3, true);
 		}
 
 		private void CreateCubeInstances(World world, VertexArrayObject vao, Shader shader)
@@ -118,66 +92,6 @@ namespace CubicEngine.View
 				}
 			}
 			vao.SetAttribute(shader.GetAttributeLocation("instancePosition"), instancePositions.ToArray(), VertexAttribPointerType.Float, 3, true);
-		}
-
-		private static void DrawCube(float size, Vector3 position, Vector4 color)
-		{
-			float halfEdge = size / 2;
-			//Top edges
-			Vector3 edge0 = new Vector3(position.X - halfEdge, position.Y + halfEdge, position.Z + halfEdge);
-			Vector3 edge1 = new Vector3(position.X + halfEdge, position.Y + halfEdge, position.Z + halfEdge);
-			Vector3 edge2 = new Vector3(position.X + halfEdge, position.Y + halfEdge, position.Z - halfEdge);
-			Vector3 edge3 = new Vector3(position.X - halfEdge, position.Y + halfEdge, position.Z - halfEdge);
-			//Bottom edges
-			Vector3 edge4 = new Vector3(position.X - halfEdge, position.Y - halfEdge, position.Z + halfEdge);
-			Vector3 edge5 = new Vector3(position.X + halfEdge, position.Y - halfEdge, position.Z + halfEdge);
-			Vector3 edge6 = new Vector3(position.X + halfEdge, position.Y - halfEdge, position.Z - halfEdge);
-			Vector3 edge7 = new Vector3(position.X - halfEdge, position.Y - halfEdge, position.Z - halfEdge);
-
-			GL.PushMatrix();
-
-			GL.Color4(color);
-			GL.Begin(PrimitiveType.Quads);
-
-			//Top face
-			GL.Vertex3(edge0);
-			GL.Vertex3(edge1);
-			GL.Vertex3(edge2);
-			GL.Vertex3(edge3);
-
-			//Bottom face
-			GL.Vertex3(edge7);
-			GL.Vertex3(edge6);
-			GL.Vertex3(edge5);
-			GL.Vertex3(edge4);
-
-			//Front face
-			GL.Vertex3(edge0);
-			GL.Vertex3(edge4);
-			GL.Vertex3(edge5);
-			GL.Vertex3(edge1);
-
-			//Back face
-			GL.Vertex3(edge2);
-			GL.Vertex3(edge6);
-			GL.Vertex3(edge7);
-			GL.Vertex3(edge3);
-
-			//Right face
-			GL.Vertex3(edge1);
-			GL.Vertex3(edge5);
-			GL.Vertex3(edge6);
-			GL.Vertex3(edge2);
-
-			//Left face
-			GL.Vertex3(edge3);
-			GL.Vertex3(edge7);
-			GL.Vertex3(edge4);
-			GL.Vertex3(edge0);
-
-			GL.End();
-
-			GL.PopMatrix();
 		}
 	}
 }
