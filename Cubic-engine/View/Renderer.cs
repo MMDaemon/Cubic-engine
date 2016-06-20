@@ -55,7 +55,7 @@ namespace CubicEngine.View
 
 			GL.Uniform3(_shader.GetUniformLocation("lightDirection"), Vector3.Normalize(new Vector3(2, 3, 1)));
 			GL.Uniform4(_shader.GetUniformLocation("lightColor"), new Color4(1, 1, 1, 1f));
-			GL.Uniform4(_shader.GetUniformLocation("materialColor"), new Color4(0.9f, 0.9f, 0.1f, 1f));
+			GL.Uniform4(_shader.GetUniformLocation("materialColor"), new Color4(0.1f, 0.1f, 0.9f, 1f));
 
 			Matrix4 cam = Camera.CalcMatrix();
 			GL.UniformMatrix4(_shader.GetUniformLocation("camera"), true, ref cam);

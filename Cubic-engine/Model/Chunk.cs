@@ -8,10 +8,12 @@ namespace CubicEngine.Model
 	internal class Chunk
 	{
 		readonly Voxel[,,] _voxels;
-		readonly Random _random = new Random();
 
 		public Chunk()
 		{
+			Vector3 center = Constants.ChunkSize/2;
+			float radius = center.X;
+
 			_voxels = new Voxel[(int)Constants.ChunkSize.X, (int)Constants.ChunkSize.Y, (int)Constants.ChunkSize.Z];
 			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
@@ -20,7 +22,10 @@ namespace CubicEngine.Model
 					for (int z = 0; z < Constants.ChunkSize.Z; z++)
 					{
 						_voxels[x, y, z] = new Voxel();
-						_voxels[x, y, z].Materials.Add(MaterialType.Dirt, _random.Next(Constants.MaxAmount+1));
+						if ((new Vector3(x, y, z) - center).Length < radius)
+						{
+							_voxels[x, y, z].Materials.Add(MaterialType.Dirt, Constants.MaxAmount);
+						}
 					}
 				}
 			}

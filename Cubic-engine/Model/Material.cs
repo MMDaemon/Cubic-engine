@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CubicEngine.Model
 {
-	internal class Material
+	internal struct Material
 	{
 		public Material(MaterialType type, int amount)
 		{
