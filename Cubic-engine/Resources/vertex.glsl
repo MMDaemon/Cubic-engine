@@ -9,7 +9,7 @@ in vec3 position;
 in vec3 normal;
 in vec3 instancePosition;
 
-flat out vec4 lighting;
+out vec4 lighting;
 
 void main() 
 {

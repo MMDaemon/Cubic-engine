@@ -14,31 +14,37 @@ namespace CubicEngine.View
 	internal class Renderer
 	{
 		private readonly Shader _shader;
-		private readonly VertexArrayObject _cube;
-		private int _particleCount = 0;
+		private readonly List<VertexArrayObject> _chunkVertexArrayObjects;
+		private readonly List<int> _particleCounts;
 
 		public CameraOrbit Camera { get; } = new CameraOrbit();
 
-		public Renderer(Chunk world)
+		public Renderer()
 		{
 
 			Camera.FarClip = 500;
 			Camera.Distance = 30;
-			Camera.Target = Constants.ChunkSize / 2;
+			Camera.Target = new Vector3(0, 110, 0);
 
 			var sVertex = Encoding.UTF8.GetString(Shaders.vertex);
 			var sFragment = Encoding.UTF8.GetString(Shaders.fragment);
 			_shader = ShaderLoader.FromStrings(sVertex, sFragment);
 
-			_cube = CreateVertexArrayObject(new Cube(1));
-
-			CreateCubeInstances(world, _cube, _shader);
+			_chunkVertexArrayObjects = new List<VertexArrayObject>();
+			_particleCounts = new List<int>();
 
 			GL.Enable(EnableCap.CullFace);
 			GL.Enable(EnableCap.DepthTest);
 
 			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
+		}
+
+		public void AddChunk(Chunk chunk)
+		{
+			VertexArrayObject chunkVertexArrayObject = CreateVertexArrayObject(new Cube(1));
+			_particleCounts.Add(CreateCubeInstances(chunk, chunkVertexArrayObject, _shader));
+			_chunkVertexArrayObjects.Add(chunkVertexArrayObject);
 		}
 
 		public void ResizeWindow(int width, int height)
@@ -60,7 +66,10 @@ namespace CubicEngine.View
 			Matrix4 cam = Camera.CalcMatrix();
 			GL.UniformMatrix4(_shader.GetUniformLocation("camera"), true, ref cam);
 
-			_cube.Draw(_particleCount);
+			for (int i = 0; i < _chunkVertexArrayObjects.Count; i++)
+			{
+				_chunkVertexArrayObjects[i].Draw(_particleCounts[i]);
+			}
 
 			_shader.End();
 		}
@@ -74,8 +83,9 @@ namespace CubicEngine.View
 			return vao;
 		}
 
-		private void CreateCubeInstances(Chunk chunk, VertexArrayObject vao, Shader shader)
+		private int CreateCubeInstances(Chunk chunk, VertexArrayObject vao, Shader shader)
 		{
+			int particleCount = 0;
 			List<Vector3> instancePositions = new List<Vector3>();
 			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
@@ -85,13 +95,15 @@ namespace CubicEngine.View
 					{
 						if (chunk[x, y, z].Materials.Amount >= Constants.MaxAmount)
 						{
-							_particleCount++;
-							instancePositions.Add(new Vector3(x, y, z));
+							Vector3 actualPos = new Vector3(chunk.X * Constants.ChunkSize.X, chunk.Y * Constants.ChunkSize.Y, chunk.Z * Constants.ChunkSize.Z) + new Vector3(x, y, z);
+							particleCount++;
+							instancePositions.Add(actualPos);
 						}
 					}
 				}
 			}
 			vao.SetAttribute(shader.GetAttributeLocation("instancePosition"), instancePositions.ToArray(), VertexAttribPointerType.Float, 3, true);
+			return particleCount;
 		}
 	}
 }

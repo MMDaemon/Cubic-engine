@@ -2,7 +2,7 @@
 
 out vec4 color;
 
-flat in vec4 lighting;
+in vec4 lighting;
 
 void main() 
 {

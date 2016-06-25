@@ -9,12 +9,23 @@ namespace CubicEngine.Model
 	{
 		readonly Voxel[,,] _voxels;
 
-		public Chunk()
+		public Chunk(int xPos, uint yPos, int zPos)
 		{
-			Vector3 center = Constants.ChunkSize/2;
-			float radius = center.X;
+			X = xPos;
+			Y = yPos;
+			Z = zPos;
 
 			_voxels = new Voxel[(int)Constants.ChunkSize.X, (int)Constants.ChunkSize.Y, (int)Constants.ChunkSize.Z];
+
+			GetVoxels();
+		}
+
+		private void GetVoxels()
+		{
+			Vector3 position = new Vector3((float)X * Constants.ChunkSize.X, (float)Y * Constants.ChunkSize.Y, (float)Z * Constants.ChunkSize.Z);
+			Vector3 center = new Vector3(0, 110, 0);
+			const float radius = 100;
+
 			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
 				for (int y = 0; y < Constants.ChunkSize.Y; y++)
@@ -22,7 +33,7 @@ namespace CubicEngine.Model
 					for (int z = 0; z < Constants.ChunkSize.Z; z++)
 					{
 						_voxels[x, y, z] = new Voxel();
-						if ((new Vector3(x, y, z) - center).Length < radius)
+						if ((position + new Vector3(x, y, z) - center).Length < radius)
 						{
 							_voxels[x, y, z].Materials.Add(MaterialType.Dirt, Constants.MaxAmount);
 						}
@@ -31,6 +42,9 @@ namespace CubicEngine.Model
 			}
 		}
 
+		public int X { get; private set; }
+		public uint Y { get; private set; }
+		public int Z { get; private set; }
 		public Voxel this[int x, int y, int z] => _voxels[x, y, z];
 	}
 }

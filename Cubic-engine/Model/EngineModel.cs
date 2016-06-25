@@ -2,6 +2,9 @@
 {
 	internal class EngineModel
 	{
-		public Chunk World => new Chunk();
+		public Chunk GetChunk(int x, uint y, int z)
+		{
+			return new Chunk(x, y, z);
+		}
 	}
 }
