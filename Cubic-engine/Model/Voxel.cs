@@ -8,6 +8,7 @@
 		public Voxel()
 		{
 			Materials = new MaterialList();
+			Surface = false;
 		}
 
 		public bool Surface { get; set; }

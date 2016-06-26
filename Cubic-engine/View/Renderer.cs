@@ -17,14 +17,13 @@ namespace CubicEngine.View
 		private readonly List<VertexArrayObject> _chunkVertexArrayObjects;
 		private readonly List<int> _particleCounts;
 
-		public CameraOrbit Camera { get; } = new CameraOrbit();
+		public CameraFirstPerson Camera { get; } = new CameraFirstPerson();
 
 		public Renderer()
 		{
 
 			Camera.FarClip = 500;
-			Camera.Distance = 30;
-			Camera.Target = new Vector3(0, 110, 0);
+			Camera.Position = new Vector3(0,200,0);
 
 			var sVertex = Encoding.UTF8.GetString(Shaders.vertex);
 			var sFragment = Encoding.UTF8.GetString(Shaders.fragment);
@@ -49,7 +48,7 @@ namespace CubicEngine.View
 
 		public void ResizeWindow(int width, int height)
 		{
-
+			Camera.Aspect = (float)width/ (float)height;
 			GL.Viewport(0, 0, width, height);
 		}
 
@@ -93,7 +92,7 @@ namespace CubicEngine.View
 				{
 					for (int z = 0; z < Constants.ChunkSize.Z; z++)
 					{
-						if (chunk[x, y, z].Materials.Amount >= Constants.MaxAmount)
+						if (chunk[x, y, z].Surface)
 						{
 							Vector3 actualPos = new Vector3(chunk.X * Constants.ChunkSize.X, chunk.Y * Constants.ChunkSize.Y, chunk.Z * Constants.ChunkSize.Z) + new Vector3(x, y, z);
 							particleCount++;

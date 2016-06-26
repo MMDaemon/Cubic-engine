@@ -31,6 +31,11 @@ namespace CubicEngine.Model
 			}
 		}
 
+		public bool IsEmpty()
+		{
+			return _materials.Count == 0;
+		}
+
 		/// <summary>
 		/// Adds the amount of the material of specified type to the MaterialList if possible.
 		/// </summary>
