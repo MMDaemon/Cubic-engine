@@ -15,9 +15,9 @@ namespace CubicEngine
 		private readonly ChunkManager _chunkManager;
 		private readonly Renderer _renderer;
 
-		private int x = -10;
+		private int x = -5;
 		private int y = 0;
-		private int z = -10;
+		private int z = -5;
 
 		private MyApplication()
 		{
@@ -70,17 +70,17 @@ namespace CubicEngine
 
 		private void _gameWindow_UpdateFrame(object sender, FrameEventArgs e)
 		{
-			AddChunks(4);
+			AddChunks(1);
 		}
 
 		private void AddChunks(int amount)
 		{
 			int count = 0;
-			while (x < 10)
+			while (x < 5)
 			{
 				while (y < 8)
 				{
-					while (z < 10)
+					while (z < 5)
 					{
 						Chunk chunk = _chunkManager.GetChunk(x, y, z);
 						if (chunk.Status != ChunkStatus.Empty && chunk.Status != ChunkStatus.Surrounded)
@@ -95,7 +95,7 @@ namespace CubicEngine
 						}
 					}
 					y++;
-					z = -10;
+					z = -5;
 				}
 				x++;
 				y = 0;
