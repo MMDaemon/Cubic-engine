@@ -94,7 +94,7 @@ namespace CubicEngine.View
 					{
 						if (chunk[x, y, z].Surface)
 						{
-							Vector3 actualPos = new Vector3(chunk.X * Constants.ChunkSize.X, chunk.Y * Constants.ChunkSize.Y, chunk.Z * Constants.ChunkSize.Z) + new Vector3(x, y, z);
+							Vector3 actualPos = new Vector3(chunk.Position.X * Constants.ChunkSize.X, chunk.Position.Y * Constants.ChunkSize.Y, chunk.Position.Z * Constants.ChunkSize.Z) + new Vector3(x, y, z);
 							particleCount++;
 							instancePositions.Add(actualPos);
 						}

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography.X509Certificates;
 using CubicEngine.Model;
+using CubicEngine.Utils.Enums;
 using CubicEngine.View;
 using OpenTK;
 using OpenTK.Graphics.ES20;
@@ -11,17 +12,17 @@ namespace CubicEngine
 	internal class MyApplication
 	{
 		private readonly GameWindow _gameWindow;
-		private readonly EngineModel _model;
+		private readonly ChunkManager _chunkManager;
 		private readonly Renderer _renderer;
 
-		private int x = -20;
-		private uint y = 0;
-		private int z = -20;
+		private int x = -10;
+		private int y = 0;
+		private int z = -10;
 
 		private MyApplication()
 		{
 			_gameWindow = new GameWindow();
-			_model = new EngineModel();
+			_chunkManager = new ChunkManager();
 			_renderer = new Renderer();
 
 			_gameWindow.MouseMove += GameWindow_MouseMove;
@@ -75,14 +76,18 @@ namespace CubicEngine
 		private void AddChunks(int amount)
 		{
 			int count = 0;
-			while (x < 20)
+			while (x < 10)
 			{
 				while (y < 8)
 				{
-					while (z < 20)
+					while (z < 10)
 					{
-						_renderer.AddChunk(new Chunk(x, y, z));
-						count++;
+						Chunk chunk = _chunkManager.GetChunk(x, y, z);
+						if (chunk.Status != ChunkStatus.Empty && chunk.Status != ChunkStatus.Surrounded)
+						{
+							_renderer.AddChunk(chunk);
+							count++;
+						}
 						z++;
 						if (count >= amount)
 						{
@@ -90,7 +95,7 @@ namespace CubicEngine
 						}
 					}
 					y++;
-					z = -20;
+					z = -10;
 				}
 				x++;
 				y = 0;
