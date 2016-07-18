@@ -39,9 +39,9 @@ namespace CubicEngine.Model
 			return voxels;
 		}
 
-		private static Voxel CreateVoxel(Vector3i voxelPosition)
+		private static Voxel CreateVoxel(Vector3i voxelPosition, bool edge = false)
 		{
-			Voxel voxel = new Voxel();
+			var voxel = edge ? new EdgeVoxel() : new Voxel();
 
 			double worldHeight = 5 + 25 * (1 + Math.Sin((float)voxelPosition.X / 50)) + 25 * (1 + Math.Sin((float)voxelPosition.Z / 100)) + 25 * (1 + Math.Sin((float)voxelPosition.X / 20)) +
 											 25 * (1 + Math.Sin((float)voxelPosition.Z / 10));
@@ -96,67 +96,24 @@ namespace CubicEngine.Model
 
 			ChunkStatus status = ChunkStatus.Surrounded;
 
-			#region top
+			#region left & right
 
-			Vector3i currentPosition = chunkPosition + new Vector3i(0, 1, 0);
+			Vector3i currentPosition1 = chunkPosition + new Vector3i(-1, 0, 0);
+			Chunk chunk1 = LoadChunk(currentPosition1);
+			Voxel[,,] voxels1 = chunk1 != null ? chunk1.Voxels : CreateVoxels(currentPosition1);
 
-			_outerChunkFaces[(int)Direction.Top] = new Voxel[Constants.ChunkSize.X, Constants.ChunkSize.Z];
-
-			Chunk chunk = LoadChunk(currentPosition);
-			Voxel[,,] voxels = chunk != null ? chunk.Voxels : CreateVoxels(currentPosition);
-
-			for (int x = 0; x < Constants.ChunkSize.X; x++)
-			{
-				for (int z = 0; z < Constants.ChunkSize.Z; z++)
-				{
-					_outerChunkFaces[(int)Direction.Top][x, z] = voxels[x, 0, z];
-					if (_outerChunkFaces[(int)Direction.Top][x, z].Materials.IsEmpty())
-					{
-						status = ChunkStatus.None;
-					}
-				}
-			}
-
-			#endregion
-
-			#region bottom
-
-			currentPosition = chunkPosition + new Vector3i(0, -1, 0);
-
-			_outerChunkFaces[(int)Direction.Bottom] = new Voxel[Constants.ChunkSize.X, Constants.ChunkSize.Z];
-
-			chunk = LoadChunk(currentPosition);
-			voxels = chunk != null ? chunk.Voxels : CreateVoxels(currentPosition);
-
-			for (int x = 0; x < Constants.ChunkSize.X; x++)
-			{
-				for (int z = 0; z < Constants.ChunkSize.Z; z++)
-				{
-					_outerChunkFaces[(int)Direction.Bottom][x, z] = voxels[x, Constants.ChunkSize.Y - 1, z];
-					if (_outerChunkFaces[(int)Direction.Bottom][x, z].Materials.IsEmpty())
-					{
-						status = ChunkStatus.None;
-					}
-				}
-			}
-
-			#endregion
-
-			#region left
-
-			currentPosition = chunkPosition + new Vector3i(-1, 0, 0);
-
-			_outerChunkFaces[(int)Direction.Left] = new Voxel[Constants.ChunkSize.Y, Constants.ChunkSize.Z];
-
-			chunk = LoadChunk(currentPosition);
-			voxels = chunk != null ? chunk.Voxels : CreateVoxels(currentPosition);
+			Vector3i currentPosition2 = chunkPosition + new Vector3i(1, 0, 0);
+			Chunk chunk2 = LoadChunk(currentPosition2);
+			Voxel[,,] voxels2 = chunk2 != null ? chunk2.Voxels : CreateVoxels(currentPosition2);
 
 			for (int y = 0; y < Constants.ChunkSize.Y; y++)
 			{
 				for (int z = 0; z < Constants.ChunkSize.Z; z++)
 				{
-					_outerChunkFaces[(int)Direction.Left][y, z] = voxels[Constants.ChunkSize.X - 1, y, z];
-					if (_outerChunkFaces[(int)Direction.Left][y, z].Materials.IsEmpty())
+					((EdgeVoxel)_currentVoxels[0, y, z]).XVoxel = voxels1[Constants.ChunkSize.X - 1, y, z];
+					((EdgeVoxel)_currentVoxels[Constants.ChunkSize.X - 1, y, z]).XVoxel = voxels2[0, y, z];
+
+					if (((EdgeVoxel)_currentVoxels[0, y, z]).XVoxel.Materials.IsEmpty() || ((EdgeVoxel)_currentVoxels[Constants.ChunkSize.X - 1, y, z]).XVoxel.Materials.IsEmpty())
 					{
 						status = ChunkStatus.None;
 					}
@@ -165,21 +122,24 @@ namespace CubicEngine.Model
 
 			#endregion
 
-			#region right
+			#region top & bottom
 
-			currentPosition = chunkPosition + new Vector3i(1, 0, 0);
+			currentPosition1 = chunkPosition + new Vector3i(0, 1, 0);
+			chunk1 = LoadChunk(currentPosition1);
+			voxels1 = chunk1 != null ? chunk1.Voxels : CreateVoxels(currentPosition1);
 
-			_outerChunkFaces[(int)Direction.Right] = new Voxel[Constants.ChunkSize.Y, Constants.ChunkSize.Z];
+			currentPosition2 = chunkPosition + new Vector3i(0, -1, 0);
+			chunk2 = LoadChunk(currentPosition2);
+			voxels2 = chunk2 != null ? chunk2.Voxels : CreateVoxels(currentPosition2);
 
-			chunk = LoadChunk(currentPosition);
-			voxels = chunk != null ? chunk.Voxels : CreateVoxels(currentPosition);
-
-			for (int y = 0; y < Constants.ChunkSize.Y; y++)
+			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
 				for (int z = 0; z < Constants.ChunkSize.Z; z++)
 				{
-					_outerChunkFaces[(int)Direction.Right][y, z] = voxels[0, y, z];
-					if (_outerChunkFaces[(int)Direction.Right][y, z].Materials.IsEmpty())
+					((EdgeVoxel)_currentVoxels[x, Constants.ChunkSize.Y - 1, z]).YVoxel = voxels1[x, 0, z];
+					((EdgeVoxel)_currentVoxels[x, 0, z]).YVoxel = voxels2[x, Constants.ChunkSize.Y - 1, z];
+
+					if (((EdgeVoxel)_currentVoxels[x, Constants.ChunkSize.Y - 1, z]).YVoxel.Materials.IsEmpty() || ((EdgeVoxel)_currentVoxels[x, 0, z]).YVoxel.Materials.IsEmpty())
 					{
 						status = ChunkStatus.None;
 					}
@@ -188,44 +148,24 @@ namespace CubicEngine.Model
 
 			#endregion
 
-			#region front
+			#region front & back
 
-			currentPosition = chunkPosition + new Vector3i(0, 0, 1);
+			currentPosition1 = chunkPosition + new Vector3i(0, 0, 1);
+			chunk1 = LoadChunk(currentPosition1);
+			voxels1 = chunk1 != null ? chunk1.Voxels : CreateVoxels(currentPosition1);
 
-			_outerChunkFaces[(int)Direction.Front] = new Voxel[Constants.ChunkSize.X, Constants.ChunkSize.Y];
-
-			chunk = LoadChunk(currentPosition);
-			voxels = chunk != null ? chunk.Voxels : CreateVoxels(currentPosition);
-
-			for (int x = 0; x < Constants.ChunkSize.X; x++)
-			{
-				for (int y = 0; y < Constants.ChunkSize.Y; y++)
-				{
-					_outerChunkFaces[(int)Direction.Front][x, y] = voxels[x, y, 0];
-					if (_outerChunkFaces[(int)Direction.Front][x, y].Materials.IsEmpty())
-					{
-						status = ChunkStatus.None;
-					}
-				}
-			}
-
-			#endregion
-
-			#region back
-
-			currentPosition = chunkPosition + new Vector3i(0, 0, -1);
-
-			_outerChunkFaces[(int)Direction.Back] = new Voxel[Constants.ChunkSize.X, Constants.ChunkSize.Y];
-
-			chunk = LoadChunk(currentPosition);
-			voxels = chunk != null ? chunk.Voxels : CreateVoxels(currentPosition);
+			currentPosition2 = chunkPosition + new Vector3i(0, 0, -1);
+			chunk2 = LoadChunk(currentPosition2);
+			voxels2 = chunk2 != null ? chunk2.Voxels : CreateVoxels(currentPosition2);
 
 			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
-				for (int y = 0; y < Constants.ChunkSize.Y; y++)
+				for (int y = 0; y < Constants.ChunkSize.Z; y++)
 				{
-					_outerChunkFaces[(int)Direction.Back][x, y] = voxels[x, y, Constants.ChunkSize.Z - 1];
-					if (_outerChunkFaces[(int)Direction.Back][x, y].Materials.IsEmpty())
+					((EdgeVoxel)_currentVoxels[x, y, Constants.ChunkSize.Z - 1]).ZVoxel = voxels1[x, y, 0];
+					((EdgeVoxel)_currentVoxels[x, y, 0]).ZVoxel = voxels2[x, y, Constants.ChunkSize.Z - 1];
+
+					if (((EdgeVoxel)_currentVoxels[x, y, Constants.ChunkSize.Z - 1]).ZVoxel.Materials.IsEmpty() || ((EdgeVoxel)_currentVoxels[x, y, 0]).ZVoxel.Materials.IsEmpty())
 					{
 						status = ChunkStatus.None;
 					}
@@ -253,7 +193,8 @@ namespace CubicEngine.Model
 						if (x < Constants.ChunkSize.X && y < Constants.ChunkSize.Y && z < Constants.ChunkSize.Z)
 						{
 							Vector3i voxelPosition = position + new Vector3i(x, y, z);
-							_currentVoxels[x, y, z] = CreateVoxel(voxelPosition);
+							bool edge = (x == 0 || y == 0 || z == 0 || x == Constants.ChunkSize.X - 1 || y == Constants.ChunkSize.Y - 1 || z == Constants.ChunkSize.Z - 1);
+							_currentVoxels[x, y, z] = CreateVoxel(voxelPosition, edge);
 
 							if (_currentVoxels[x, y, z].Materials.IsEmpty())
 							{
@@ -337,31 +278,37 @@ namespace CubicEngine.Model
 
 		private Voxel GetVoxel(int x, int y, int z)
 		{
+			Voxel voxel;
 			if (x == -1)
 			{
-				return _outerChunkFaces[(int)Direction.Left][y, z];
+				voxel = ((EdgeVoxel)_currentVoxels[0, y, z]).XVoxel;
 			}
-			if (x == Constants.ChunkSize.X)
+			else if (x == Constants.ChunkSize.X)
 			{
-				return _outerChunkFaces[(int)Direction.Right][y, z];
+				voxel = ((EdgeVoxel)_currentVoxels[Constants.ChunkSize.X - 1, y, z]).XVoxel;
 			}
-			if (y == -1)
+			else if (y == -1)
 			{
-				return _outerChunkFaces[(int)Direction.Bottom][x, z];
+				voxel = ((EdgeVoxel)_currentVoxels[x, 0, z]).YVoxel;
 			}
-			if (y == Constants.ChunkSize.Y)
+			else if (y == Constants.ChunkSize.Y)
 			{
-				return _outerChunkFaces[(int)Direction.Top][x, z];
+				voxel = ((EdgeVoxel)_currentVoxels[x, Constants.ChunkSize.Y - 1, z]).YVoxel;
 			}
-			if (z == -1)
+			else if (z == -1)
 			{
-				return _outerChunkFaces[(int)Direction.Back][x, y];
+				voxel = ((EdgeVoxel)_currentVoxels[x, y, 0]).ZVoxel;
 			}
-			if (z == Constants.ChunkSize.Z)
+			else if (z == Constants.ChunkSize.Z)
 			{
-				return _outerChunkFaces[(int)Direction.Front][x, y];
+				voxel = ((EdgeVoxel)_currentVoxels[x, y, Constants.ChunkSize.Z - 1]).ZVoxel;
 			}
-			return _currentVoxels[x, y, z];
+			else
+			{
+				voxel = _currentVoxels[x, y, z];
+			}
+
+			return voxel;
 		}
 
 		private void ResetMembers()

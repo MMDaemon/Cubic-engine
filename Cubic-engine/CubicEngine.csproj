@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\ChunkManager.cs" />
+    <Compile Include="Model\EdgeVoxel.cs" />
     <Compile Include="Model\Material.cs" />
     <Compile Include="Model\Chunk.cs" />
     <Compile Include="Resources\Shaders.Designer.cs">
