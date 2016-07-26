@@ -8,7 +8,6 @@ namespace CubicEngine.Model
 {
 	class ChunkManager
 	{
-		private Voxel[][,] _outerChunkFaces;
 		private Voxel[,,] _currentVoxels;
 
 		public ChunkManager()
@@ -43,11 +42,16 @@ namespace CubicEngine.Model
 		{
 			var voxel = edge ? new EdgeVoxel() : new Voxel();
 
-			double worldHeight = 5 + 25 * (1 + Math.Sin((float)voxelPosition.X / 50)) + 25 * (1 + Math.Sin((float)voxelPosition.Z / 100)) + 25 * (1 + Math.Sin((float)voxelPosition.X / 20)) +
-											 25 * (1 + Math.Sin((float)voxelPosition.Z / 10));
+			double worldHeight = 5 + 15 * (1 + Math.Sin((float)voxelPosition.X / 40)) + 35 * (1 + Math.Sin((float)voxelPosition.Z / 90)) + 15 * (1 + Math.Sin((float)voxelPosition.X / 30)) +
+											 35 * (1 + Math.Sin((float)voxelPosition.Z / 100));
 			if (voxelPosition.Y < worldHeight)
 			{
-				voxel.Materials.Add(MaterialType.Dirt, Constants.MaxAmount);
+				int matHeight = (int)(Constants.MaxAmount * (voxelPosition.Y - (45 + 5 * (1 + Math.Sin((float)voxelPosition.X / 5)) + 15 * (1 + Math.Cos((float)voxelPosition.Z / 50)) + 5 * (1 + Math.Sin((float)voxelPosition.X / 8)) +
+											 15 * (1 + Math.Cos((float)voxelPosition.Z / 70)))));
+
+				int stoneAmount = Constants.MaxAmount < matHeight ? Constants.MaxAmount : (matHeight < 0 ? 0 : matHeight);
+				voxel.Materials.Add(MaterialType.Stone, stoneAmount);
+				voxel.Materials.Add(MaterialType.Dirt, Constants.MaxAmount - stoneAmount);
 			}
 
 			return voxel;
@@ -92,8 +96,6 @@ namespace CubicEngine.Model
 
 		private ChunkStatus CreateOuterFaces(Vector3i chunkPosition)
 		{
-			_outerChunkFaces = new Voxel[6][,];
-
 			ChunkStatus status = ChunkStatus.Surrounded;
 
 			#region left & right
@@ -313,7 +315,6 @@ namespace CubicEngine.Model
 
 		private void ResetMembers()
 		{
-			_outerChunkFaces = null;
 			_currentVoxels = new Voxel[Constants.ChunkSize.X, Constants.ChunkSize.Y, Constants.ChunkSize.Z];
 		}
 	}

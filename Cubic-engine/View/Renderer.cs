@@ -23,7 +23,7 @@ namespace CubicEngine.View
 		{
 
 			Camera.FarClip = 500;
-			Camera.Position = new Vector3(0,200,0);
+			Camera.Position = new Vector3(0, 200, 0);
 
 			var sVertex = Encoding.UTF8.GetString(Shaders.vertex);
 			var sFragment = Encoding.UTF8.GetString(Shaders.fragment);
@@ -48,7 +48,7 @@ namespace CubicEngine.View
 
 		public void ResizeWindow(int width, int height)
 		{
-			Camera.Aspect = (float)width/ (float)height;
+			Camera.Aspect = (float)width / (float)height;
 			GL.Viewport(0, 0, width, height);
 		}
 
@@ -86,6 +86,7 @@ namespace CubicEngine.View
 		{
 			int particleCount = 0;
 			List<Vector3> instancePositions = new List<Vector3>();
+			List<Color4> instanceColors = new List<Color4>();
 			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
 				for (int y = 0; y < Constants.ChunkSize.Y; y++)
@@ -97,12 +98,29 @@ namespace CubicEngine.View
 							Vector3 actualPos = new Vector3(chunk.Position.X * Constants.ChunkSize.X, chunk.Position.Y * Constants.ChunkSize.Y, chunk.Position.Z * Constants.ChunkSize.Z) + new Vector3(x, y, z);
 							particleCount++;
 							instancePositions.Add(actualPos);
+							instanceColors.Add(GetColorFromVoxel(chunk, x, y, z));
 						}
 					}
 				}
 			}
 			vao.SetAttribute(shader.GetAttributeLocation("instancePosition"), instancePositions.ToArray(), VertexAttribPointerType.Float, 3, true);
+			vao.SetAttribute(shader.GetAttributeLocation("materialColor"), instanceColors.ToArray(), VertexAttribPointerType.Float, 4, true);
 			return particleCount;
+		}
+
+		private Color4 GetColorFromVoxel(Chunk chunk, int x, int y, int z)
+		{
+			Color4 color = new Color4(0, 0, 0, 1);
+			int currentMax = 0;
+			foreach (Material material in chunk[x, y, z].Materials)
+			{
+				if (material.Amount > currentMax)
+				{
+					currentMax = material.Amount;
+					color = material.Color;
+				}
+			}
+			return color;
 		}
 	}
 }
