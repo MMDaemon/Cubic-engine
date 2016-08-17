@@ -20,6 +20,11 @@ namespace CubicEngine.View
 			Normals.Add(Vector3.UnitY);
 			Normals.Add(Vector3.UnitY);
 
+			Uvs.Add(new Vector2(0, 1));
+			Uvs.Add(new Vector2(1, 1));
+			Uvs.Add(new Vector2(1, 0));
+			Uvs.Add(new Vector2(0, 0));
+
 			Ids.Add(0);
 			Ids.Add(1);
 			Ids.Add(3);
@@ -38,6 +43,11 @@ namespace CubicEngine.View
 			Normals.Add(-Vector3.UnitY);
 			Normals.Add(-Vector3.UnitY);
 			Normals.Add(-Vector3.UnitY);
+
+			Uvs.Add(new Vector2(0, 0));
+			Uvs.Add(new Vector2(1, 0));
+			Uvs.Add(new Vector2(1, 1));
+			Uvs.Add(new Vector2(0, 1));
 
 			Ids.Add(7);
 			Ids.Add(6);
@@ -58,6 +68,11 @@ namespace CubicEngine.View
 			Normals.Add(Vector3.UnitZ);
 			Normals.Add(Vector3.UnitZ);
 
+			Uvs.Add(new Vector2(0, 0));
+			Uvs.Add(new Vector2(1, 0));
+			Uvs.Add(new Vector2(0, 1));
+			Uvs.Add(new Vector2(1, 1));
+
 			Ids.Add(8);
 			Ids.Add(10);
 			Ids.Add(9);
@@ -76,6 +91,11 @@ namespace CubicEngine.View
 			Normals.Add(-Vector3.UnitZ);
 			Normals.Add(-Vector3.UnitZ);
 			Normals.Add(-Vector3.UnitZ);
+
+			Uvs.Add(new Vector2(0, 0));
+			Uvs.Add(new Vector2(1, 0));
+			Uvs.Add(new Vector2(0, 1));
+			Uvs.Add(new Vector2(1, 1));
 
 			Ids.Add(13);
 			Ids.Add(12);
@@ -96,6 +116,11 @@ namespace CubicEngine.View
 			Normals.Add(-Vector3.UnitX);
 			Normals.Add(-Vector3.UnitX);
 
+			Uvs.Add(new Vector2(1, 0));
+			Uvs.Add(new Vector2(0, 0));
+			Uvs.Add(new Vector2(1, 1));
+			Uvs.Add(new Vector2(0, 1));
+
 			Ids.Add(17);
 			Ids.Add(19);
 			Ids.Add(16);
@@ -114,6 +139,11 @@ namespace CubicEngine.View
 			Normals.Add(Vector3.UnitX);
 			Normals.Add(Vector3.UnitX);
 			Normals.Add(Vector3.UnitX);
+
+			Uvs.Add(new Vector2(0, 0));
+			Uvs.Add(new Vector2(1, 0));
+			Uvs.Add(new Vector2(0, 1));
+			Uvs.Add(new Vector2(1, 1));
 
 			Ids.Add(20);
 			Ids.Add(22);

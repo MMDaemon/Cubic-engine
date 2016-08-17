@@ -4,6 +4,6 @@
 	{
 		public const int MaxAmount = 64;
 
-		public static readonly Vector3i ChunkSize = new Vector3i(32, 32, 32);
+		public static readonly Vector3I ChunkSize = new Vector3I(32, 32, 32);
 	}
 }

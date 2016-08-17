@@ -1,21 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using CubicEngine.Utils.Enums;
 using CubicEngine.Utils;
-using System;
+using Model;
 
 namespace CubicEngine.Model
 {
 	internal class MaterialList : IEnumerable
 	{
-		private readonly Dictionary<MaterialType, int> _materials;
+		private readonly Dictionary<int, int> _materials;
+		private MaterialManager _materialManager;
 
 		/// <summary>
 		/// Constructor of the MaterialList.
 		/// </summary>
 		public MaterialList()
 		{
-			_materials = new Dictionary<MaterialType, int>();
+			_materials = new Dictionary<int, int>();
+			_materialManager = MaterialManager.Instance;
 		}
 
 		public int Amount
@@ -36,24 +37,29 @@ namespace CubicEngine.Model
 			return _materials.Count == 0;
 		}
 
+		public bool Add(string materialName, int amount)
+		{
+			return Add(_materialManager.GetMaterialId(materialName), amount);
+		}
+
 		/// <summary>
 		/// Adds the amount of the material of specified type to the MaterialList if possible.
 		/// </summary>
-		/// <param name="type">type of the material to add.</param>
+		/// <param name="materialId">type of the material to add.</param>
 		/// <param name="amount">amount of the material to add. Can not be 0.</param>
 		/// <returns>If the action was sucessfull.</returns>
-		public bool Add(MaterialType type, int amount)
+		public bool Add(int materialId, int amount)
 		{
-			bool possible = amount != 0 && Amount + amount <= Constants.MaxAmount;
+			bool possible = amount != 0 && Amount + amount <= Constants.MaxAmount && _materialManager.ContainsMaterial(materialId);
 			if (possible)
 			{
-				if (_materials.ContainsKey(type))
+				if (_materials.ContainsKey(materialId))
 				{
-					_materials[type] += amount;
+					_materials[materialId] += amount;
 				}
 				else
 				{
-					_materials.Add(type, amount);
+					_materials.Add(materialId, amount);
 				}
 			}
 			return possible;
@@ -62,18 +68,18 @@ namespace CubicEngine.Model
 		/// <summary>
 		/// Removes the amount of the material of specified type from the MaterialList if possible.
 		/// </summary>
-		/// <param name="type">type of the material to remove.</param>
+		/// <param name="materialId">type of the material to remove.</param>
 		/// <param name="amount">amount of the material to remove.</param>
 		/// <returns>If the action was sucessfull.</returns>
-		public bool Remove(MaterialType type, int amount)
+		public bool Remove(int materialId, int amount)
 		{
-			bool possible = _materials.ContainsKey(type) && _materials[type] >= amount;
+			bool possible = _materials.ContainsKey(materialId) && _materials[materialId] >= amount;
 			if (possible)
 			{
-				_materials[type] -= amount;
-				if (_materials[type] == 0)
+				_materials[materialId] -= amount;
+				if (_materials[materialId] == 0)
 				{
-					_materials.Remove(type);
+					_materials.Remove(materialId);
 				}
 			}
 			return possible;
@@ -82,22 +88,24 @@ namespace CubicEngine.Model
 		public IEnumerator GetEnumerator()
 		{
 			List<Material> materials = new List<Material>();
-			foreach (KeyValuePair<MaterialType, int> material in _materials)
+			foreach (KeyValuePair<int, int> material in _materials)
 			{
 				materials.Add(new Material(material.Key, material.Value));
 			}
 			return materials.GetEnumerator();
 		}
 
-		public int this[MaterialType type]
+		public int this[string typeName] => this[_materialManager.GetMaterialId(typeName)];
+
+		public int this[int typeId]
 		{
 			get
 			{
 				int amount = 0;
 
-				if (_materials.ContainsKey(type))
+				if (_materials.ContainsKey(typeId))
 				{
-					amount = _materials[type];
+					amount = _materials[typeId];
 				}
 
 				return amount;

@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -48,6 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GraphicsUtils\Mesh.cs" />
+    <Compile Include="GraphicsUtils\Texture.cs" />
+    <Compile Include="GraphicsUtils\TextureLoader.cs" />
     <Compile Include="GraphicsUtils\VertexArrayObject.cs" />
     <Compile Include="GraphicsUtils\VertexArrayObjectException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

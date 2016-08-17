@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Security.Cryptography.X509Certificates;
 using CubicEngine.Model;
 using CubicEngine.Utils.Enums;
 using CubicEngine.View;
 using OpenTK;
-using OpenTK.Graphics.ES20;
 using OpenTK.Input;
 
 namespace CubicEngine

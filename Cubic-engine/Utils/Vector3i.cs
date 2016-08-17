@@ -1,41 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK;
+﻿using OpenTK;
 
 namespace CubicEngine.Utils
 {
-	struct Vector3i
+	internal struct Vector3I
 	{
 		public int X;
 		public int Y;
 		public int Z;
 
-		public Vector3i(int x, int y, int z)
+		public Vector3I(int x, int y, int z)
 		{
 			X = x;
 			Y = y;
 			Z = z;
 		}
 
-		public static Vector3i operator +(Vector3i vec1, Vector3i vec2)
+		public static Vector3I operator +(Vector3I vec1, Vector3I vec2)
 		{
-			return new Vector3i(vec1.X + vec2.X, vec1.Y + vec2.Y, vec1.Z + vec2.Z);
+			return new Vector3I(vec1.X + vec2.X, vec1.Y + vec2.Y, vec1.Z + vec2.Z);
 		}
 
-		public static Vector3i operator -(Vector3i vec1, Vector3i vec2)
+		public static Vector3I operator -(Vector3I vec1, Vector3I vec2)
 		{
-			return new Vector3i(vec1.X - vec2.X, vec1.Y - vec2.Y, vec1.Z - vec2.Z);
+			return new Vector3I(vec1.X - vec2.X, vec1.Y - vec2.Y, vec1.Z - vec2.Z);
 		}
 
-		public static Vector3i operator -(Vector3i vec)
+		public static Vector3I operator -(Vector3I vec)
 		{
-			return new Vector3i(-vec.X, -vec.Y, -vec.Z);
+			return new Vector3I(-vec.X, -vec.Y, -vec.Z);
 		}
 
-		public static explicit operator Vector3(Vector3i vec)
+		public static explicit operator Vector3(Vector3I vec)
 		{
 			return new Vector3(vec.X, vec.Y, vec.Z);
 		}

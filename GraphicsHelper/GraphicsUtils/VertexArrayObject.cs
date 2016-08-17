@@ -100,6 +100,29 @@ namespace GraphicsHelper.GraphicsUtils
 			GL.DisableVertexAttribArray(bindingId);
 		}
 
+		public void SetAttribute<TDataElement>(int bindingId, TDataElement[,] data, VertexAttribPointerType type, int elementSize, bool perInstance = false) where TDataElement : struct
+		{
+			if (-1 == bindingId) return; //if matrix not used in shader or wrong name
+			Activate();
+			uint bufferId = RequestBuffer(bindingId);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+			int elementBytes = Marshal.SizeOf(typeof(TDataElement));
+			int bufferByteSize = data.Length * elementBytes;
+			// set buffer data
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)bufferByteSize, data, BufferUsageHint.StaticDraw);
+			//set data format
+			GL.VertexAttribPointer(bindingId, elementSize, type, false, elementBytes, 0);
+			GL.EnableVertexAttribArray(bindingId);
+			if (perInstance)
+			{
+				GL.VertexAttribDivisor(bindingId, 1);
+			}
+			//cleanup state
+			Deactive();
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			GL.DisableVertexAttribArray(bindingId);
+		}
+
 		/// <summary>
 		/// sets or updates a vertex attribute of type Matrix4
 		/// </summary>

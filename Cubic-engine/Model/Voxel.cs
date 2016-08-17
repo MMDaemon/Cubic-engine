@@ -1,6 +1,4 @@
-﻿using CubicEngine.Utils.Enums;
-
-namespace CubicEngine.Model
+﻿namespace CubicEngine.Model
 {
 	internal class Voxel
 	{

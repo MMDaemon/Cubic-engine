@@ -5,6 +5,7 @@ using CubicEngine.Resources;
 using CubicEngine.Utils;
 using GraphicsHelper.GraphicsUtils;
 using GraphicsHelper.ShaderUtils;
+using Model;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics;
@@ -14,6 +15,7 @@ namespace CubicEngine.View
 	internal class Renderer
 	{
 		private readonly Shader _shader;
+		private readonly Texture _materialTexture;
 		private readonly List<VertexArrayObject> _chunkVertexArrayObjects;
 		private readonly List<int> _particleCounts;
 
@@ -28,6 +30,9 @@ namespace CubicEngine.View
 			var sVertex = Encoding.UTF8.GetString(Shaders.vertex);
 			var sFragment = Encoding.UTF8.GetString(Shaders.fragment);
 			_shader = ShaderLoader.FromStrings(sVertex, sFragment);
+
+			_materialTexture = TextureLoader.FromBitmap(MaterialManager.Instance.GetMaterialsAsBitmap());
+			_materialTexture.FilterNearest();
 
 			_chunkVertexArrayObjects = new List<VertexArrayObject>();
 			_particleCounts = new List<int>();
@@ -58,9 +63,11 @@ namespace CubicEngine.View
 
 			_shader.Begin();
 
+			_materialTexture.BindToUniform(_shader.GetUniformLocation("materialTexture"), TextureUnit.Texture0);
+
+			GL.Uniform1(_shader.GetUniformLocation("materialCount"), MaterialManager.Instance.MaterialCount);
 			GL.Uniform3(_shader.GetUniformLocation("lightDirection"), Vector3.Normalize(new Vector3(2, 3, 1)));
 			GL.Uniform4(_shader.GetUniformLocation("lightColor"), new Color4(1, 1, 1, 1f));
-			GL.Uniform4(_shader.GetUniformLocation("materialColor"), new Color4(0.1f, 0.1f, 0.9f, 1f));
 
 			Matrix4 cam = Camera.CalcMatrix();
 			GL.UniformMatrix4(_shader.GetUniformLocation("camera"), true, ref cam);
@@ -70,6 +77,8 @@ namespace CubicEngine.View
 				_chunkVertexArrayObjects[i].Draw(_particleCounts[i]);
 			}
 
+			_materialTexture.EndUse();
+
 			_shader.End();
 		}
 
@@ -78,6 +87,7 @@ namespace CubicEngine.View
 			var vao = new VertexArrayObject();
 			vao.SetAttribute(_shader.GetAttributeLocation("position"), mesh.Positions.ToArray(), VertexAttribPointerType.Float, 3);
 			vao.SetAttribute(_shader.GetAttributeLocation("normal"), mesh.Normals.ToArray(), VertexAttribPointerType.Float, 3);
+			vao.SetAttribute(_shader.GetAttributeLocation("uv"), mesh.Uvs.ToArray(), VertexAttribPointerType.Float, 2);
 			vao.SetId(mesh.Ids.ToArray(), PrimitiveType.Triangles);
 			return vao;
 		}
@@ -86,7 +96,7 @@ namespace CubicEngine.View
 		{
 			int particleCount = 0;
 			List<Vector3> instancePositions = new List<Vector3>();
-			List<Color4> instanceColors = new List<Color4>();
+			List<int> instanceMaterials = new List<int>();
 			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
 				for (int y = 0; y < Constants.ChunkSize.Y; y++)
@@ -98,26 +108,26 @@ namespace CubicEngine.View
 							Vector3 actualPos = new Vector3(chunk.Position.X * Constants.ChunkSize.X, chunk.Position.Y * Constants.ChunkSize.Y, chunk.Position.Z * Constants.ChunkSize.Z) + new Vector3(x, y, z);
 							particleCount++;
 							instancePositions.Add(actualPos);
-							instanceColors.Add(GetColorFromVoxel(chunk, x, y, z));
+							instanceMaterials.Add(GetMaterialsFromVoxel(chunk, x, y, z, 1)[0]);
 						}
 					}
 				}
 			}
 			vao.SetAttribute(shader.GetAttributeLocation("instancePosition"), instancePositions.ToArray(), VertexAttribPointerType.Float, 3, true);
-			vao.SetAttribute(shader.GetAttributeLocation("materialColor"), instanceColors.ToArray(), VertexAttribPointerType.Float, 4, true);
+			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterial"), instanceMaterials.ToArray(), VertexAttribPointerType.Float, 4, true);
 			return particleCount;
 		}
 
-		private Color4 GetColorFromVoxel(Chunk chunk, int x, int y, int z)
+		private int[] GetMaterialsFromVoxel(Chunk chunk, int x, int y, int z, int sitesCount)
 		{
-			Color4 color = new Color4(0, 0, 0, 1);
+			int[] color = new int[sitesCount];
 			int currentMax = 0;
 			foreach (Material material in chunk[x, y, z].Materials)
 			{
 				if (material.Amount > currentMax)
 				{
 					currentMax = material.Amount;
-					color = material.Color;
+					color[0] = material.TypeId;
 				}
 			}
 			return color;

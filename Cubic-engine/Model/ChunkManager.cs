@@ -1,8 +1,6 @@
 ﻿using System;
 using CubicEngine.Utils;
 using CubicEngine.Utils.Enums;
-using OpenTK;
-using OpenTK.Graphics.ES30;
 
 namespace CubicEngine.Model
 {
@@ -15,9 +13,9 @@ namespace CubicEngine.Model
 			_currentVoxels = _currentVoxels = new Voxel[Constants.ChunkSize.X, Constants.ChunkSize.Y, Constants.ChunkSize.Z];
 		}
 
-		private static Voxel[,,] CreateVoxels(Vector3i chunkPosition)
+		private static Voxel[,,] CreateVoxels(Vector3I chunkPosition)
 		{
-			Vector3i position = new Vector3i(chunkPosition.X * Constants.ChunkSize.X, chunkPosition.Y * Constants.ChunkSize.Y, chunkPosition.Z * Constants.ChunkSize.Z);
+			Vector3I position = new Vector3I(chunkPosition.X * Constants.ChunkSize.X, chunkPosition.Y * Constants.ChunkSize.Y, chunkPosition.Z * Constants.ChunkSize.Z);
 
 			Voxel[,,] voxels = new Voxel[Constants.ChunkSize.X, Constants.ChunkSize.Y, Constants.ChunkSize.Z];
 
@@ -29,7 +27,7 @@ namespace CubicEngine.Model
 					{
 						if (x < Constants.ChunkSize.X && y < Constants.ChunkSize.Y && z < Constants.ChunkSize.Z)
 						{
-							Vector3i voxelPosition = position + new Vector3i(x, y, z);
+							Vector3I voxelPosition = position + new Vector3I(x, y, z);
 							voxels[x, y, z] = CreateVoxel(voxelPosition);
 						}
 					}
@@ -38,20 +36,20 @@ namespace CubicEngine.Model
 			return voxels;
 		}
 
-		private static Voxel CreateVoxel(Vector3i voxelPosition, bool edge = false)
+		private static Voxel CreateVoxel(Vector3I voxelPosition, bool edge = false)
 		{
 			var voxel = edge ? new EdgeVoxel() : new Voxel();
 
-			double worldHeight = 5 + 15 * (1 + Math.Sin((float)voxelPosition.X / 40)) + 35 * (1 + Math.Sin((float)voxelPosition.Z / 90)) + 15 * (1 + Math.Sin((float)voxelPosition.X / 30)) +
-											 35 * (1 + Math.Sin((float)voxelPosition.Z / 100));
+			double worldHeight = 5 + 15 * (1 + Math.Cos((float)voxelPosition.X / 40)) + 35 * (1 + Math.Cos((float)voxelPosition.Z / 90)) + 15 * (1 + Math.Cos((float)voxelPosition.X / 30)) +
+											 35 * (1 + Math.Cos((float)voxelPosition.Z / 100));
 			if (voxelPosition.Y < worldHeight)
 			{
-				int matHeight = (int)(Constants.MaxAmount * (voxelPosition.Y - (45 + 5 * (1 + Math.Sin((float)voxelPosition.X / 5)) + 15 * (1 + Math.Cos((float)voxelPosition.Z / 50)) + 5 * (1 + Math.Sin((float)voxelPosition.X / 8)) +
-											 15 * (1 + Math.Cos((float)voxelPosition.Z / 70)))));
+				int matHeight = (int)(Constants.MaxAmount * (voxelPosition.Y - (45 + 5 * (1 + Math.Cos((float)voxelPosition.X / 5)) + 15 * (1 + Math.Sin((float)voxelPosition.Z / 50)) + 5 * (1 + Math.Cos((float)voxelPosition.X / 8)) +
+											 15 * (1 + Math.Sin((float)voxelPosition.Z / 70)))));
 
 				int stoneAmount = Constants.MaxAmount < matHeight ? Constants.MaxAmount : (matHeight < 0 ? 0 : matHeight);
-				voxel.Materials.Add(MaterialType.Stone, stoneAmount);
-				voxel.Materials.Add(MaterialType.Dirt, Constants.MaxAmount - stoneAmount);
+				voxel.Materials.Add("Stone", stoneAmount);
+				voxel.Materials.Add("Dirt", Constants.MaxAmount - stoneAmount);
 			}
 
 			return voxel;
@@ -59,21 +57,21 @@ namespace CubicEngine.Model
 
 		public Chunk GetChunk(int x, int y, int z)
 		{
-			return GetChunk(new Vector3i(x, y, z));
+			return GetChunk(new Vector3I(x, y, z));
 		}
 
-		public Chunk GetChunk(Vector3i position)
+		public Chunk GetChunk(Vector3I position)
 		{
 			return LoadChunk(position) ?? CreateChunk(position);
 		}
 
-		private Chunk LoadChunk(Vector3i chunkPosition)
+		private Chunk LoadChunk(Vector3I chunkPosition)
 		{
 			//TODO implement Chunk loading
 			return null;
 		}
 
-		private Chunk CreateChunk(Vector3i chunkPosition)
+		private Chunk CreateChunk(Vector3I chunkPosition)
 		{
 			ChunkStatus status = CreateAndCheckVoxels(chunkPosition);
 
@@ -94,17 +92,17 @@ namespace CubicEngine.Model
 			return chunk;
 		}
 
-		private ChunkStatus CreateOuterFaces(Vector3i chunkPosition)
+		private ChunkStatus CreateOuterFaces(Vector3I chunkPosition)
 		{
 			ChunkStatus status = ChunkStatus.Surrounded;
 
 			#region left & right
 
-			Vector3i currentPosition1 = chunkPosition + new Vector3i(-1, 0, 0);
+			Vector3I currentPosition1 = chunkPosition + new Vector3I(-1, 0, 0);
 			Chunk chunk1 = LoadChunk(currentPosition1);
 			Voxel[,,] voxels1 = chunk1 != null ? chunk1.Voxels : CreateVoxels(currentPosition1);
 
-			Vector3i currentPosition2 = chunkPosition + new Vector3i(1, 0, 0);
+			Vector3I currentPosition2 = chunkPosition + new Vector3I(1, 0, 0);
 			Chunk chunk2 = LoadChunk(currentPosition2);
 			Voxel[,,] voxels2 = chunk2 != null ? chunk2.Voxels : CreateVoxels(currentPosition2);
 
@@ -126,11 +124,11 @@ namespace CubicEngine.Model
 
 			#region top & bottom
 
-			currentPosition1 = chunkPosition + new Vector3i(0, 1, 0);
+			currentPosition1 = chunkPosition + new Vector3I(0, 1, 0);
 			chunk1 = LoadChunk(currentPosition1);
 			voxels1 = chunk1 != null ? chunk1.Voxels : CreateVoxels(currentPosition1);
 
-			currentPosition2 = chunkPosition + new Vector3i(0, -1, 0);
+			currentPosition2 = chunkPosition + new Vector3I(0, -1, 0);
 			chunk2 = LoadChunk(currentPosition2);
 			voxels2 = chunk2 != null ? chunk2.Voxels : CreateVoxels(currentPosition2);
 
@@ -152,11 +150,11 @@ namespace CubicEngine.Model
 
 			#region front & back
 
-			currentPosition1 = chunkPosition + new Vector3i(0, 0, 1);
+			currentPosition1 = chunkPosition + new Vector3I(0, 0, 1);
 			chunk1 = LoadChunk(currentPosition1);
 			voxels1 = chunk1 != null ? chunk1.Voxels : CreateVoxels(currentPosition1);
 
-			currentPosition2 = chunkPosition + new Vector3i(0, 0, -1);
+			currentPosition2 = chunkPosition + new Vector3I(0, 0, -1);
 			chunk2 = LoadChunk(currentPosition2);
 			voxels2 = chunk2 != null ? chunk2.Voxels : CreateVoxels(currentPosition2);
 
@@ -179,9 +177,9 @@ namespace CubicEngine.Model
 			return status;
 		}
 
-		private ChunkStatus CreateAndCheckVoxels(Vector3i chunkPosition)
+		private ChunkStatus CreateAndCheckVoxels(Vector3I chunkPosition)
 		{
-			Vector3i position = new Vector3i(chunkPosition.X * Constants.ChunkSize.X, chunkPosition.Y * Constants.ChunkSize.Y, chunkPosition.Z * Constants.ChunkSize.Z);
+			Vector3I position = new Vector3I(chunkPosition.X * Constants.ChunkSize.X, chunkPosition.Y * Constants.ChunkSize.Y, chunkPosition.Z * Constants.ChunkSize.Z);
 
 			ChunkStatus status = ChunkStatus.Full;
 
@@ -194,7 +192,7 @@ namespace CubicEngine.Model
 					{
 						if (x < Constants.ChunkSize.X && y < Constants.ChunkSize.Y && z < Constants.ChunkSize.Z)
 						{
-							Vector3i voxelPosition = position + new Vector3i(x, y, z);
+							Vector3I voxelPosition = position + new Vector3I(x, y, z);
 							bool edge = (x == 0 || y == 0 || z == 0 || x == Constants.ChunkSize.X - 1 || y == Constants.ChunkSize.Y - 1 || z == Constants.ChunkSize.Z - 1);
 							_currentVoxels[x, y, z] = CreateVoxel(voxelPosition, edge);
 

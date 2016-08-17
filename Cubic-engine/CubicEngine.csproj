@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -54,6 +55,7 @@
     <Compile Include="Model\EdgeVoxel.cs" />
     <Compile Include="Model\Material.cs" />
     <Compile Include="Model\Chunk.cs" />
+    <Compile Include="Model\MaterialType.cs" />
     <Compile Include="Resources\Shaders.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -62,11 +64,11 @@
     <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\Enums\ChunkStatus.cs" />
     <Compile Include="Utils\Enums\Direction.cs" />
-    <Compile Include="Utils\Enums\MaterialType.cs" />
     <Compile Include="Model\MaterialList.cs" />
     <Compile Include="Model\Voxel.cs" />
     <Compile Include="MyApplication.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Model\MaterialManager.cs" />
     <Compile Include="Utils\Vector3i.cs" />
     <Compile Include="View\CameraFirstPerson.cs" />
     <Compile Include="View\Cube.cs" />

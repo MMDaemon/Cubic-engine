@@ -1,7 +1,5 @@
 ﻿using CubicEngine.Utils;
 using CubicEngine.Utils.Enums;
-using OpenTK;
-using System;
 
 namespace CubicEngine.Model
 {
@@ -9,7 +7,7 @@ namespace CubicEngine.Model
 	{
 		public Voxel[,,] Voxels { get; private set; }
 
-		public Vector3i Position { get; private set; }
+		public Vector3I Position { get; private set; }
 		public ChunkStatus Status { get; set; } = ChunkStatus.None;
 
 		public Voxel this[int x, int y, int z]
@@ -49,7 +47,7 @@ namespace CubicEngine.Model
 			}
 		}
 
-		public Chunk(Vector3i position, Voxel[,,] voxels)
+		public Chunk(Vector3I position, Voxel[,,] voxels)
 		{
 			Position = position;
 			Voxels = voxels;
