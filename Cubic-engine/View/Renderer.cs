@@ -97,6 +97,8 @@ namespace CubicEngine.View
 			int particleCount = 0;
 			List<Vector3> instancePositions = new List<Vector3>();
 			List<int> instanceMaterials = new List<int>();
+			List<Vector3> instanceMaterialDirections = new List<Vector3>();
+
 			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
 				for (int y = 0; y < Constants.ChunkSize.Y; y++)
@@ -105,16 +107,29 @@ namespace CubicEngine.View
 					{
 						if (chunk[x, y, z].Surface)
 						{
-							Vector3 actualPos = new Vector3(chunk.Position.X * Constants.ChunkSize.X, chunk.Position.Y * Constants.ChunkSize.Y, chunk.Position.Z * Constants.ChunkSize.Z) + new Vector3(x, y, z);
 							particleCount++;
+
+							Vector3 actualPos = new Vector3(chunk.Position.X * Constants.ChunkSize.X, chunk.Position.Y * Constants.ChunkSize.Y, chunk.Position.Z * Constants.ChunkSize.Z) + new Vector3(x, y, z);
 							instancePositions.Add(actualPos);
+
 							instanceMaterials.Add(GetMaterialsFromVoxel(chunk, x, y, z, 1)[0]);
+
+							Vector3 materialDirection = new Vector3
+							{
+								X = chunk[x - 1, y, z].Materials.Amount - chunk[x + 1, y, z].Materials.Amount,
+								Y = chunk[x, y - 1, z].Materials.Amount - chunk[x, y + 1, z].Materials.Amount,
+								Z = chunk[x, y, z - 1].Materials.Amount - chunk[x, y, z + 1].Materials.Amount
+							};
+							instanceMaterialDirections.Add(materialDirection.Normalized());
 						}
 					}
 				}
 			}
+
 			vao.SetAttribute(shader.GetAttributeLocation("instancePosition"), instancePositions.ToArray(), VertexAttribPointerType.Float, 3, true);
 			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterial"), instanceMaterials.ToArray(), VertexAttribPointerType.Float, 4, true);
+			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterialDirection"), instanceMaterialDirections.ToArray(), VertexAttribPointerType.Float, 3, true);
+
 			return particleCount;
 		}
 
