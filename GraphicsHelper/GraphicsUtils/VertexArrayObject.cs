@@ -1,8 +1,8 @@
 ﻿using System;
+using OpenTK.Graphics.OpenGL;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
 
 namespace GraphicsHelper.GraphicsUtils
 {
@@ -28,7 +28,7 @@ namespace GraphicsHelper.GraphicsUtils
 
 		private IdData _idData;
 		private int _idVao;
-		private readonly Dictionary<int, uint> _boundBuffers = new Dictionary<int, uint>();
+		private readonly Dictionary<int, BufferObject> _boundBuffers = new Dictionary<int, BufferObject>();
 
 		#endregion
 
@@ -45,9 +45,9 @@ namespace GraphicsHelper.GraphicsUtils
 
 		public void Dispose()
 		{
-			foreach (uint id in _boundBuffers.Values)
+			foreach (var buffer in _boundBuffers.Values)
 			{
-				GL.DeleteBuffer(id);
+				buffer.Dispose();
 			}
 			_boundBuffers.Clear();
 			GL.DeleteVertexArray(_idVao);
@@ -61,56 +61,29 @@ namespace GraphicsHelper.GraphicsUtils
 		public void SetId<TIndex>(TIndex[] data, PrimitiveType primitiveType) where TIndex : struct
 		{
 			Activate();
-			uint bufferId = RequestBuffer(IdBufferBinding);
-
-			GL.BindBuffer(BufferTarget.ElementArrayBuffer, bufferId);
-			var type = typeof(TIndex);
-			int elementBytes = Marshal.SizeOf(type);
-			int bufferByteSize = data.Length * elementBytes;
+			var buffer = RequestBuffer(IdBufferBinding, BufferTarget.ElementArrayBuffer);
 			// set buffer data
-			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)bufferByteSize, data, BufferUsageHint.StaticDraw);
+			buffer.Set(data, BufferUsageHint.StaticDraw);
+			//activate for state
+			buffer.Activate();
 			//cleanup state
 			Deactive();
-			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+			buffer.Deactive();
 			//save data for draw call
-			DrawElementsType drawElementsType = GetDrawElementsType(type);
+			DrawElementsType drawElementsType = GetDrawElementsType(typeof(TIndex));
 			_idData = new IdData(primitiveType, data.Length, drawElementsType);
 		}
 
-		public void SetAttribute<DataElement>(int bindingId, DataElement[] data, VertexAttribPointerType type, int elementSize, bool perInstance = false) where DataElement : struct
+		public void SetAttribute<TDataElement>(int bindingId, TDataElement[] data, VertexAttribPointerType type, int elementSize, bool perInstance = false) where TDataElement : struct
 		{
-			if (-1 == bindingId) return; //if matrix not used in shader or wrong name
+			if (-1 == bindingId) return; //if attribute not used in shader or wrong name
 			Activate();
-			uint bufferId = RequestBuffer(bindingId);
-			GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
-			int elementBytes = Marshal.SizeOf(typeof(DataElement));
-			int bufferByteSize = data.Length * elementBytes;
-			// set buffer data
-			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)bufferByteSize, data, BufferUsageHint.StaticDraw);
+			var buffer = RequestBuffer(bindingId, BufferTarget.ArrayBuffer);
+			buffer.Set(data, BufferUsageHint.StaticDraw);
+			//activate for state
+			buffer.Activate();
 			//set data format
-			GL.VertexAttribPointer(bindingId, elementSize, type, false, elementBytes, 0);
-			GL.EnableVertexAttribArray(bindingId);
-			if (perInstance)
-			{
-				GL.VertexAttribDivisor(bindingId, 1);
-			}
-			//cleanup state
-			Deactive();
-			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-			GL.DisableVertexAttribArray(bindingId);
-		}
-
-		public void SetAttribute<TDataElement>(int bindingId, TDataElement[,] data, VertexAttribPointerType type, int elementSize, bool perInstance = false) where TDataElement : struct
-		{
-			if (-1 == bindingId) return; //if matrix not used in shader or wrong name
-			Activate();
-			uint bufferId = RequestBuffer(bindingId);
-			GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
 			int elementBytes = Marshal.SizeOf(typeof(TDataElement));
-			int bufferByteSize = data.Length * elementBytes;
-			// set buffer data
-			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)bufferByteSize, data, BufferUsageHint.StaticDraw);
-			//set data format
 			GL.VertexAttribPointer(bindingId, elementSize, type, false, elementBytes, 0);
 			GL.EnableVertexAttribArray(bindingId);
 			if (perInstance)
@@ -119,7 +92,7 @@ namespace GraphicsHelper.GraphicsUtils
 			}
 			//cleanup state
 			Deactive();
-			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			buffer.Deactive();
 			GL.DisableVertexAttribArray(bindingId);
 		}
 
@@ -133,14 +106,14 @@ namespace GraphicsHelper.GraphicsUtils
 		{
 			if (-1 == bindingId) return; //if matrix not used in shader or wrong name
 			Activate();
-			uint bufferId = RequestBuffer(bindingId);
-			GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
-			int elementBytes = Marshal.SizeOf(typeof(Matrix4));
-			int columnBytes = Marshal.SizeOf(typeof(Vector4));
-			int bufferByteSize = data.Length * elementBytes;
+			var buffer = RequestBuffer(bindingId, BufferTarget.ArrayBuffer);
 			// set buffer data
-			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)bufferByteSize, data, BufferUsageHint.StaticDraw);
+			buffer.Set(data, BufferUsageHint.StaticDraw);
+			//activate for state
+			buffer.Activate();
 			//set data format
+			int columnBytes = Marshal.SizeOf(typeof(Vector4));
+			int elementBytes = Marshal.SizeOf(typeof(Matrix4));
 			for (int i = 0; i < 4; i++)
 			{
 				GL.VertexAttribPointer(bindingId + i, 4, VertexAttribPointerType.Float, false, elementBytes, columnBytes * i);
@@ -169,6 +142,13 @@ namespace GraphicsHelper.GraphicsUtils
 			GL.BindVertexArray(0);
 		}
 
+		public void DrawArrays(PrimitiveType type, int count, int start = 0)
+		{
+			Activate();
+			GL.DrawArrays(type, start, count);
+			Deactive();
+		}
+
 		public void Draw(int instanceCount = 1)
 		{
 			if (0 == _idData.Length) throw new VertexArrayObjectException("Empty id data set! Draw yourself using active/deactivate!");
@@ -188,15 +168,15 @@ namespace GraphicsHelper.GraphicsUtils
 			throw new Exception("Invalid index type");
 		}
 
-		private uint RequestBuffer(int bindingId)
+		private BufferObject RequestBuffer(int bindingId, BufferTarget bufferTarget)
 		{
-			uint bufferId;
-			if (!_boundBuffers.TryGetValue(bindingId, out bufferId))
+			BufferObject buffer;
+			if (!_boundBuffers.TryGetValue(bindingId, out buffer))
 			{
-				GL.GenBuffers(1, out bufferId);
-				_boundBuffers[bindingId] = bufferId;
+				buffer = new BufferObject(bufferTarget);
+				_boundBuffers[bindingId] = buffer;
 			}
-			return bufferId;
+			return buffer;
 		}
 
 		#endregion
