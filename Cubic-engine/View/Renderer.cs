@@ -18,6 +18,9 @@ namespace CubicEngine.View
 		private readonly Texture _materialTexture;
 		private readonly List<VertexArrayObject> _chunkVertexArrayObjects;
 		private readonly List<int> _particleCounts;
+		private readonly List<BufferObject> _materialBuffers;
+		private readonly List<BufferObject> _extentBuffers;
+
 
 		public CameraFirstPerson Camera { get; } = new CameraFirstPerson();
 
@@ -36,6 +39,8 @@ namespace CubicEngine.View
 
 			_chunkVertexArrayObjects = new List<VertexArrayObject>();
 			_particleCounts = new List<int>();
+			_materialBuffers = new List<BufferObject>();
+			_extentBuffers = new List<BufferObject>();
 
 			GL.Enable(EnableCap.CullFace);
 			GL.Enable(EnableCap.DepthTest);
@@ -47,8 +52,7 @@ namespace CubicEngine.View
 		public void AddChunk(Chunk chunk)
 		{
 			VertexArrayObject chunkVertexArrayObject = CreateVertexArrayObject(new Cube(1));
-			_particleCounts.Add(CreateCubeInstances(chunk, chunkVertexArrayObject, _shader));
-			_chunkVertexArrayObjects.Add(chunkVertexArrayObject);
+			CreateCubeInstances(chunk, chunkVertexArrayObject, _shader);
 		}
 
 		public void ResizeWindow(int width, int height)
@@ -65,7 +69,7 @@ namespace CubicEngine.View
 
 			_materialTexture.BindToUniform(_shader.GetUniformLocation("materialTexture"), TextureUnit.Texture0);
 
-			GL.Uniform1(_shader.GetUniformLocation("materialCount"), MaterialManager.Instance.MaterialCount);
+			GL.Uniform1(_shader.GetUniformLocation("totalMaterialCount"), MaterialManager.Instance.MaterialCount);
 			GL.Uniform3(_shader.GetUniformLocation("lightDirection"), Vector3.Normalize(new Vector3(2, 3, 1)));
 			GL.Uniform4(_shader.GetUniformLocation("lightColor"), new Color4(1, 1, 1, 1f));
 
@@ -74,7 +78,11 @@ namespace CubicEngine.View
 
 			for (int i = 0; i < _chunkVertexArrayObjects.Count; i++)
 			{
+				_materialBuffers[i].ActivateBind(3);
+				_extentBuffers[i].ActivateBind(4);
 				_chunkVertexArrayObjects[i].Draw(_particleCounts[i]);
+				_materialBuffers[i].Deactive();
+				_extentBuffers[i].Deactive();
 			}
 
 			_materialTexture.EndUse();
@@ -92,13 +100,18 @@ namespace CubicEngine.View
 			return vao;
 		}
 
-		private int CreateCubeInstances(Chunk chunk, VertexArrayObject vao, Shader shader)
+		private void CreateCubeInstances(Chunk chunk, VertexArrayObject vao, Shader shader)
 		{
 			int particleCount = 0;
 			List<Vector3> instancePositions = new List<Vector3>();
-			List<int> instanceMaterials = new List<int>();
 			List<Vector3> instanceMaterialDirections = new List<Vector3>();
+			List<int> instanceMaterialOffsets = new List<int>();
+			List<int> instanceMaterialCounts = new List<int>();
 
+			List<int> materials = new List<int>();
+			List<float> extents = new List<float>();
+
+			int offset = 0;
 			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
 				for (int y = 0; y < Constants.ChunkSize.Y; y++)
@@ -112,8 +125,6 @@ namespace CubicEngine.View
 							Vector3 actualPos = new Vector3(chunk.Position.X * Constants.ChunkSize.X, chunk.Position.Y * Constants.ChunkSize.Y, chunk.Position.Z * Constants.ChunkSize.Z) + new Vector3(x, y, z);
 							instancePositions.Add(actualPos);
 
-							instanceMaterials.Add(GetMaterialsFromVoxel(chunk, x, y, z, 1)[0]);
-
 							Vector3 materialDirection = new Vector3
 							{
 								X = chunk[x - 1, y, z].Materials.Amount - chunk[x + 1, y, z].Materials.Amount,
@@ -121,31 +132,47 @@ namespace CubicEngine.View
 								Z = chunk[x, y, z - 1].Materials.Amount - chunk[x, y, z + 1].Materials.Amount
 							};
 							instanceMaterialDirections.Add(materialDirection.Normalized());
+
+							float[] currentExtents;
+							materials.AddRange(GetMaterialsFromVoxel(out currentExtents, chunk, x, y, z));
+							extents.AddRange(currentExtents);
+							instanceMaterialOffsets.Add(offset);
+							instanceMaterialCounts.Add(currentExtents.Length);
+							offset += currentExtents.Length;
 						}
 					}
 				}
 			}
 
 			vao.SetAttribute(shader.GetAttributeLocation("instancePosition"), instancePositions.ToArray(), VertexAttribPointerType.Float, 3, true);
-			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterial"), instanceMaterials.ToArray(), VertexAttribPointerType.Float, 4, true);
 			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterialDirection"), instanceMaterialDirections.ToArray(), VertexAttribPointerType.Float, 3, true);
+			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterialOffset"), instanceMaterialOffsets.ToArray(), VertexAttribPointerType.Float, 4, true);
+			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterialCount"), instanceMaterialCounts.ToArray(), VertexAttribPointerType.Float, 4, true);
 
-			return particleCount;
+			_chunkVertexArrayObjects.Add(vao);
+			_particleCounts.Add(particleCount);
+
+			BufferObject buffer = new BufferObject(BufferTarget.ShaderStorageBuffer);
+			buffer.Set(materials.ToArray(), BufferUsageHint.StaticCopy);
+			_materialBuffers.Add(buffer);
+			buffer = new BufferObject(BufferTarget.ShaderStorageBuffer);
+			buffer.Set(extents.ToArray(), BufferUsageHint.StaticCopy);
+			_extentBuffers.Add(buffer);
 		}
 
-		private int[] GetMaterialsFromVoxel(Chunk chunk, int x, int y, int z, int sitesCount)
+		private int[] GetMaterialsFromVoxel(out float[] extents, Chunk chunk, int x, int y, int z)
 		{
-			int[] color = new int[sitesCount];
-			int currentMax = 0;
+			List<int> materialList = new List<int>();
+			List<float> extentList = new List<float>();
+
 			foreach (Material material in chunk[x, y, z].Materials)
 			{
-				if (material.Amount > currentMax)
-				{
-					currentMax = material.Amount;
-					color[0] = material.TypeId;
-				}
+				materialList.Add(material.TypeId);
+				extentList.Add((float)material.Amount / (float)Constants.MaxAmount);
 			}
-			return color;
+
+			extents = extentList.ToArray();
+			return materialList.ToArray();
 		}
 	}
 }
