@@ -8,7 +8,7 @@ namespace GraphicsHelper.ShaderUtils
 	/// </summary>
 	public class Shader : IDisposable
 	{
-		public bool IsLinked { get; private set; } = false;
+		public bool IsLinked { get; private set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Shader"/> class.
@@ -92,6 +92,6 @@ namespace GraphicsHelper.ShaderUtils
 			IsLinked = true;
 		}
 
-		private readonly int _mProgramId = 0;
+		private readonly int _mProgramId;
 	}
 }

@@ -30,9 +30,45 @@ namespace CubicEngine.Utils
 			return new Vector3I(-vec.X, -vec.Y, -vec.Z);
 		}
 
+		public static bool operator <(Vector3I vec1, Vector3I vec2)
+		{
+			return (vec1.X < vec2.X || vec1.Y < vec2.Y || vec1.Z < vec2.Z);
+		}
+
+		public static bool operator <=(Vector3I vec1, Vector3I vec2)
+		{
+			return (vec1.X <= vec2.X || vec1.Y <= vec2.Y || vec1.Z <= vec2.Z);
+		}
+
+		public static bool operator >(Vector3I vec1, Vector3I vec2)
+		{
+			return (vec1.X > vec2.X || vec1.Y > vec2.Y || vec1.Z > vec2.Z);
+		}
+
+		public static bool operator >=(Vector3I vec1, Vector3I vec2)
+		{
+			return (vec1.X >= vec2.X || vec1.Y >= vec2.Y || vec1.Z >= vec2.Z);
+		}
+
+		public static Vector3I operator *(Vector3I vec1, Vector3I vec2)
+		{
+			return new Vector3I(vec1.X * vec2.X, vec1.Y * vec2.Y, vec1.Z * vec2.Z);
+		}
+
+		public static Vector3I operator /(Vector3I vec1, Vector3I vec2)
+		{
+			return new Vector3I(vec1.X / vec2.X, vec1.Y / vec2.Y, vec1.Z / vec2.Z);
+		}
+
+		public static Vector3I operator %(Vector3I vec1, Vector3I vec2)
+		{
+			return new Vector3I(vec1.X % vec2.X, vec1.Y % vec2.Y, vec1.Z % vec2.Z);
+		}
+
 		public static explicit operator Vector3(Vector3I vec)
 		{
 			return new Vector3(vec.X, vec.Y, vec.Z);
 		}
+
 	}
 }

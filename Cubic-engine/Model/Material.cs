@@ -1,6 +1,4 @@
-﻿using Model;
-
-namespace CubicEngine.Model
+﻿namespace CubicEngine.Model
 {
 	internal struct Material
 	{

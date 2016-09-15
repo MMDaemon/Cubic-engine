@@ -16,9 +16,9 @@ namespace GraphicsHelper.GraphicsUtils
 
 			public IdData(PrimitiveType primitiveType, int length, DrawElementsType drawElementsType)
 			{
-				this.PrimitiveType = primitiveType;
-				this.Length = length;
-				this.DrawElementsType = drawElementsType;
+				PrimitiveType = primitiveType;
+				Length = length;
+				DrawElementsType = drawElementsType;
 			}
 		}
 

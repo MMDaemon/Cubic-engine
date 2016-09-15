@@ -9,8 +9,8 @@ namespace CubicEngine.View
 			FovY = 90;
 			Aspect = 1;
 			NearClip = 0.1f;
-			FarClip = 1;		
-			
+			FarClip = 1;
+
 			Position = Vector3.Zero;
 			Tilt = 0;
 			Heading = 0;
@@ -34,9 +34,9 @@ namespace CubicEngine.View
 
 			Matrix4 rotationZ = Matrix4.CreateRotationZ(Tilt);
 			Matrix4 rotationY = Matrix4.CreateRotationY(Heading);
-			Matrix4 rotation = rotationY*rotationZ;
+			Matrix4 rotation = rotationY * rotationZ;
 			Vector3 target = new Vector3(rotation.M11, rotation.M21, rotation.M31);
-			var mtxLookAt = Matrix4.Transpose(Matrix4.LookAt(Position, Position+target, Vector3.UnitY));
+			var mtxLookAt = Matrix4.Transpose(Matrix4.LookAt(Position, Position + target, Vector3.UnitY));
 
 			var camera = mtxProjection * mtxLookAt;
 			return camera;

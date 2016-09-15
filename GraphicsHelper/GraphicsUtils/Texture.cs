@@ -94,9 +94,9 @@ namespace GraphicsHelper.GraphicsUtils
 		public void LoadPixels(IntPtr pixels, int width, int height, PixelInternalFormat internalFormat, PixelFormat inputPixelFormat, PixelType type)
 		{
 			BeginUse();
-			GL.TexImage2D(TextureTarget.Texture2D, 0, internalFormat, width, height, 0,	inputPixelFormat, type, pixels);
-			this.Width = width;
-			this.Height = height;
+			GL.TexImage2D(TextureTarget.Texture2D, 0, internalFormat, width, height, 0, inputPixelFormat, type, pixels);
+			Width = width;
+			Height = height;
 			EndUse();
 		}
 
@@ -117,7 +117,7 @@ namespace GraphicsHelper.GraphicsUtils
 		public int Height { get; private set; }
 
 		public uint ID { get { return this.m_uTextureID; } }
-	
+
 		private readonly uint m_uTextureID = 0;
 	}
 }

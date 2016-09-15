@@ -18,8 +18,8 @@ namespace GraphicsHelper.GraphicsUtils
 			{
 				bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 				BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, bmp.PixelFormat);
-				PixelInternalFormat internalFormat = selectInternalPixelFormat(bmp.PixelFormat);
-				OpenTK.Graphics.OpenGL.PixelFormat inputPixelFormat = selectInputPixelFormat(bmp.PixelFormat);
+				PixelInternalFormat internalFormat = SelectInternalPixelFormat(bmp.PixelFormat);
+				OpenTK.Graphics.OpenGL.PixelFormat inputPixelFormat = SelectInputPixelFormat(bmp.PixelFormat);
 				texture.LoadPixels(bmpData.Scan0, bmpData.Width, bmpData.Height, internalFormat, inputPixelFormat, PixelType.UnsignedByte);
 				bmp.UnlockBits(bmpData);
 			}
@@ -46,8 +46,8 @@ namespace GraphicsHelper.GraphicsUtils
 			texture.BeginUse();
 			using (Bitmap bmp = new Bitmap(texture.Width, texture.Height))
 			{
-				BitmapData data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.WriteOnly, format);
-				GL.GetTexImage(TextureTarget.Texture2D, 0, selectInputPixelFormat(format), PixelType.UnsignedByte, data.Scan0);
+				BitmapData data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.WriteOnly, format);
+				GL.GetTexImage(TextureTarget.Texture2D, 0, SelectInputPixelFormat(format), PixelType.UnsignedByte, data.Scan0);
 				bmp.UnlockBits(data);
 				texture.EndUse();
 				bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
@@ -55,7 +55,7 @@ namespace GraphicsHelper.GraphicsUtils
 			}
 		}
 
-		private static OpenTK.Graphics.OpenGL.PixelFormat selectInputPixelFormat(System.Drawing.Imaging.PixelFormat pixelFormat)
+		private static OpenTK.Graphics.OpenGL.PixelFormat SelectInputPixelFormat(System.Drawing.Imaging.PixelFormat pixelFormat)
 		{
 			switch (pixelFormat)
 			{
@@ -66,7 +66,7 @@ namespace GraphicsHelper.GraphicsUtils
 			}
 		}
 
-		private static PixelInternalFormat selectInternalPixelFormat(System.Drawing.Imaging.PixelFormat pixelFormat)
+		private static PixelInternalFormat SelectInternalPixelFormat(System.Drawing.Imaging.PixelFormat pixelFormat)
 		{
 			switch (pixelFormat)
 			{

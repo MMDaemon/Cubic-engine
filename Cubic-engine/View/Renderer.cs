@@ -5,7 +5,6 @@ using CubicEngine.Resources;
 using CubicEngine.Utils;
 using GraphicsHelper.GraphicsUtils;
 using GraphicsHelper.ShaderUtils;
-using Model;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics;
@@ -57,7 +56,7 @@ namespace CubicEngine.View
 
 		public void ResizeWindow(int width, int height)
 		{
-			Camera.Aspect = (float)width / (float)height;
+			Camera.Aspect = (float)width / height;
 			GL.Viewport(0, 0, width, height);
 		}
 
@@ -131,6 +130,10 @@ namespace CubicEngine.View
 								Y = chunk[x, y - 1, z].Materials.Amount - chunk[x, y + 1, z].Materials.Amount,
 								Z = chunk[x, y, z - 1].Materials.Amount - chunk[x, y, z + 1].Materials.Amount
 							};
+							if (materialDirection.Equals(new Vector3(0, 0, 0)))
+							{
+								materialDirection = new Vector3(0, 1, 0);
+							}
 							instanceMaterialDirections.Add(materialDirection.Normalized());
 
 							float[] currentExtents;
@@ -146,8 +149,8 @@ namespace CubicEngine.View
 
 			vao.SetAttribute(shader.GetAttributeLocation("instancePosition"), instancePositions.ToArray(), VertexAttribPointerType.Float, 3, true);
 			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterialDirection"), instanceMaterialDirections.ToArray(), VertexAttribPointerType.Float, 3, true);
-			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterialOffset"), instanceMaterialOffsets.ToArray(), VertexAttribPointerType.Float, 4, true);
-			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterialCount"), instanceMaterialCounts.ToArray(), VertexAttribPointerType.Float, 4, true);
+			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterialOffset"), instanceMaterialOffsets.ToArray(), VertexAttribPointerType.Float, 1, true);
+			vao.SetAttribute(shader.GetAttributeLocation("instanceMaterialCount"), instanceMaterialCounts.ToArray(), VertexAttribPointerType.Float, 1, true);
 
 			_chunkVertexArrayObjects.Add(vao);
 			_particleCounts.Add(particleCount);
@@ -165,11 +168,16 @@ namespace CubicEngine.View
 			List<int> materialList = new List<int>();
 			List<float> extentList = new List<float>();
 
+			Material currentMaterial = new Material(0, 0);
 			foreach (Material material in chunk[x, y, z].Materials)
 			{
-				materialList.Add(material.TypeId);
-				extentList.Add((float)material.Amount / (float)Constants.MaxAmount);
+				if (material.Amount > currentMaterial.Amount)
+				{
+					currentMaterial = material;
+				}
 			}
+			materialList.Add(currentMaterial.TypeId);
+			extentList.Add(1);
 
 			extents = extentList.ToArray();
 			return materialList.ToArray();

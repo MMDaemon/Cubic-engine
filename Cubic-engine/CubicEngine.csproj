@@ -51,19 +51,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Model\ChunkManager.cs" />
-    <Compile Include="Model\EdgeVoxel.cs" />
+    <Compile Include="Controller\KeyboardListener.cs" />
     <Compile Include="Model\Material.cs" />
     <Compile Include="Model\Chunk.cs" />
     <Compile Include="Model\MaterialType.cs" />
+    <Compile Include="Model\World.cs" />
     <Compile Include="Resources\Shaders.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Shaders.resx</DependentUpon>
     </Compile>
     <Compile Include="Utils\Constants.cs" />
+    <Compile Include="Utils\Enums\KeyAction.cs" />
     <Compile Include="Utils\Enums\ChunkStatus.cs" />
-    <Compile Include="Utils\Enums\Direction.cs" />
     <Compile Include="Model\MaterialList.cs" />
     <Compile Include="Model\Voxel.cs" />
     <Compile Include="MyApplication.cs" />
@@ -80,9 +80,7 @@
     <None Include="Resources\fragment.glsl" />
     <None Include="Resources\vertex.glsl" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Controller\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\GraphicsHelper\GraphicsHelper.csproj">
       <Project>{a88e3263-b374-4ac5-b82a-a2ce47c76206}</Project>

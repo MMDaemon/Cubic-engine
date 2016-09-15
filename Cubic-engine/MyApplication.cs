@@ -1,104 +1,96 @@
 ﻿using System;
 using CubicEngine.Model;
-using CubicEngine.Utils.Enums;
 using CubicEngine.View;
 using OpenTK;
 using OpenTK.Input;
+using CubicEngine.Controller;
+using CubicEngine.Utils.Enums;
+using System.Collections.Generic;
 
 namespace CubicEngine
 {
 	internal class MyApplication
 	{
 		private readonly GameWindow _gameWindow;
-		private readonly ChunkManager _chunkManager;
+		KeyboardListener _keyboardListener;
+		private readonly World _world;
 		private readonly Renderer _renderer;
-
-		private int x = -5;
-		private int y = 0;
-		private int z = -5;
 
 		private MyApplication()
 		{
 			_gameWindow = new GameWindow();
-			_chunkManager = new ChunkManager();
+			_keyboardListener = new KeyboardListener();
+			_world = new World();
 			_renderer = new Renderer();
 
 			_gameWindow.MouseMove += GameWindow_MouseMove;
 			_gameWindow.Resize += GameWindow_Resize;
 			_gameWindow.RenderFrame += GameWindow_RenderFrame;
 			_gameWindow.RenderFrame += (sender, e) => { _gameWindow.SwapBuffers(); };
-			_gameWindow.UpdateFrame += _gameWindow_UpdateFrame;
-			_gameWindow.KeyDown += _gameWindow_KeyDown;
+			_gameWindow.UpdateFrame += GameWindow_UpdateFrame;
+			_gameWindow.KeyDown += GameWindow_KeyDown;
+			_gameWindow.KeyUp += GameWindow_KeyUp;
+
+			_world.ChunkRenderReady += World_ChunkRenderReady;
 		}
 
-		private void _gameWindow_KeyDown(object sender, KeyboardKeyEventArgs e)
+		private void MoveCamera(List<KeyAction> actions)
 		{
 			Matrix4 rotationY = Matrix4.CreateRotationY(_renderer.Camera.Heading);
-			switch (e.Key)
-			{
-				case Key.W:
-				case Key.Up:
-					_renderer.Camera.Position += new Vector3(rotationY.M11, rotationY.M21, rotationY.M31);
-					break;
-				case Key.S:
-				case Key.Down:
-					_renderer.Camera.Position -= new Vector3(rotationY.M11, rotationY.M21, rotationY.M31);
-					break;
-				case Key.A:
-				case Key.Left:
-					Matrix4 rotationLeft = Matrix4.CreateRotationY(_renderer.Camera.Heading - (float)Math.PI/2);
-					_renderer.Camera.Position += new Vector3(rotationLeft.M11, rotationLeft.M21, rotationLeft.M31);
-					break;
-				case Key.D:
-				case Key.Right:
-					Matrix4 rotationRight = Matrix4.CreateRotationY(_renderer.Camera.Heading + (float)Math.PI / 2);
-					_renderer.Camera.Position += new Vector3(rotationRight.M11, rotationRight.M21, rotationRight.M31);
-					break;
-				case Key.Space:
-					_renderer.Camera.Position += Vector3.UnitY;
-					break;
-				case Key.ShiftLeft:
-					_renderer.Camera.Position -= Vector3.UnitY;
-					break;
-				default:
-					break;
 
+			if (actions.Contains(KeyAction.MoveForwards))
+			{
+				_renderer.Camera.Position += new Vector3(rotationY.M11, rotationY.M21, rotationY.M31);
 			}
+
+			if (actions.Contains(KeyAction.MoveBackwards))
+			{
+				_renderer.Camera.Position -= new Vector3(rotationY.M11, rotationY.M21, rotationY.M31);
+			}
+
+			if (actions.Contains(KeyAction.MoveLeft))
+			{
+				Matrix4 rotationLeft = Matrix4.CreateRotationY(_renderer.Camera.Heading - (float)Math.PI / 2);
+				_renderer.Camera.Position += new Vector3(rotationLeft.M11, rotationLeft.M21, rotationLeft.M31);
+			}
+
+			if (actions.Contains(KeyAction.MoveRight))
+			{
+				Matrix4 rotationRight = Matrix4.CreateRotationY(_renderer.Camera.Heading + (float)Math.PI / 2);
+				_renderer.Camera.Position += new Vector3(rotationRight.M11, rotationRight.M21, rotationRight.M31);
+			}
+
+			if (actions.Contains(KeyAction.MoveUp))
+			{
+				_renderer.Camera.Position += Vector3.UnitY;
+			}
+
+			if (actions.Contains(KeyAction.MoveDown))
+			{
+				_renderer.Camera.Position -= Vector3.UnitY;
+			}
+
 		}
 
-		private void _gameWindow_UpdateFrame(object sender, FrameEventArgs e)
+		private void World_ChunkRenderReady(object sender, ChunkEventArgs e)
 		{
-			AddChunks(1);
+			_renderer.AddChunk(e.Chunk);
 		}
 
-		private void AddChunks(int amount)
+		private void GameWindow_KeyDown(object sender, KeyboardKeyEventArgs e)
 		{
-			int count = 0;
-			while (x < 5)
-			{
-				while (y < 8)
-				{
-					while (z < 5)
-					{
-						Chunk chunk = _chunkManager.GetChunk(x, y, z);
-						if (chunk.Status != ChunkStatus.Empty && chunk.Status != ChunkStatus.Surrounded)
-						{
-							_renderer.AddChunk(chunk);
-							count++;
-						}
-						z++;
-						if (count >= amount)
-						{
-							return;
-						}
-					}
-					y++;
-					z = -5;
-				}
-				x++;
-				y = 0;
+			_keyboardListener.KeyDown(e.Key);
+		}
 
-			}
+		private void GameWindow_KeyUp(object sender, KeyboardKeyEventArgs e)
+		{
+			_keyboardListener.KeyUp(e.Key);
+		}
+
+		private void GameWindow_UpdateFrame(object sender, FrameEventArgs e)
+		{
+			MoveCamera(_keyboardListener.GetKeyActions());
+			_world.Update();
 		}
 
 		public static void Main(string[] args)
@@ -107,7 +99,7 @@ namespace CubicEngine
 			app._gameWindow.Run(60, 60);
 		}
 
-		private void GameWindow_Resize(object sender, System.EventArgs e)
+		private void GameWindow_Resize(object sender, EventArgs e)
 		{
 			_renderer.ResizeWindow(_gameWindow.Width, _gameWindow.Height);
 		}
@@ -123,6 +115,14 @@ namespace CubicEngine
 			{
 				_renderer.Camera.Heading += 10 * e.XDelta / (float)_gameWindow.Width;
 				_renderer.Camera.Tilt += 10 * e.YDelta / (float)_gameWindow.Height;
+				if (_renderer.Camera.Tilt > (float)(Math.PI / 2 - 0.01))
+				{
+					_renderer.Camera.Tilt = (float)(Math.PI / 2 - 0.01);
+				}
+				if (_renderer.Camera.Tilt < (float)-(Math.PI / 2 - 0.01))
+				{
+					_renderer.Camera.Tilt = (float)-(Math.PI / 2 - 0.01);
+				}
 			}
 		}
 	}

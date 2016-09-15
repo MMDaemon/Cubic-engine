@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using CubicEngine.Model;
 
-namespace Model
+namespace CubicEngine.Model
 {
 	internal class MaterialManager
 	{
@@ -73,6 +72,7 @@ namespace Model
 			Add("Stone", Color.FromArgb(255, 130, 130, 130));
 			Add("Dirt", Color.FromArgb(255, 110, 90, 15));
 			Add("Sand", Color.FromArgb(255, 250, 250, 190));
+			Add("Grass", Color.FromArgb(255, 20, 250, 20));
 		}
 
 		public int MaterialCount => _materialTypes.Count;

@@ -22,10 +22,10 @@ namespace GraphicsHelper.ShaderUtils
 				shd.Compile(sFragmentShd, ShaderType.FragmentShader);
 				shd.Link();
 			}
-			catch (Exception e)
+			catch (Exception)
 			{
 				shd.Dispose();
-				throw e;
+				throw;
 			}
 			return shd;
 		}
@@ -51,7 +51,7 @@ namespace GraphicsHelper.ShaderUtils
 		/// <returns>string with contents of shaderFile</returns>
 		public static string ShaderStringFromFileWithIncludes(string shaderFile)
 		{
-			string sShader = null;
+			string sShader;
 			if (!File.Exists(shaderFile))
 			{
 				throw new FileNotFoundException("Could not find shader file '" + shaderFile + "'");
@@ -60,8 +60,7 @@ namespace GraphicsHelper.ShaderUtils
 
 			//handle includes
 			string sCurrentPath = Path.GetDirectoryName(shaderFile) + Path.DirectorySeparatorChar; // get path to current shader
-			string sName = Path.GetFileName(shaderFile);
-			//split into lines
+																								   //split into lines
 			var lines = sShader.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 			var pattern = @"\s*#include\s+" + '"' + "(.+)" + '"';
 			int lineNr = 1;
