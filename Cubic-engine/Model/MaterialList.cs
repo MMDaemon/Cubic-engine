@@ -64,6 +64,11 @@ namespace CubicEngine.Model
 			return possible;
 		}
 
+		public bool Remove(string materialName, int amount)
+		{
+			return Remove(_materialManager.GetMaterialId(materialName), amount);
+		}
+
 		/// <summary>
 		/// Removes the amount of the material of specified type from the MaterialList if possible.
 		/// </summary>
@@ -82,6 +87,16 @@ namespace CubicEngine.Model
 				}
 			}
 			return possible;
+		}
+
+		public bool Contains(string materialName)
+		{
+			return _materials.ContainsKey(_materialManager.GetMaterialId(materialName));
+		}
+
+		public bool Contains(int typeId)
+		{
+			return _materials.ContainsKey(typeId);
 		}
 
 		public IEnumerator GetEnumerator()

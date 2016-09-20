@@ -32,6 +32,7 @@ namespace CubicEngine
 			_gameWindow.KeyUp += GameWindow_KeyUp;
 
 			_world.ChunkRenderReady += World_ChunkRenderReady;
+			_renderer.ReRender += _renderer_ReRender;
 		}
 
 		private void MoveCamera(List<KeyAction> actions)
@@ -70,11 +71,26 @@ namespace CubicEngine
 				_renderer.Camera.Position -= Vector3.UnitY;
 			}
 
+			if (actions.Contains(KeyAction.SwitchMethod))
+			{
+				_renderer.SwitchRenderMethod();
+			}
+
+			if (actions.Contains(KeyAction.SwitchAlgorythm))
+			{
+				_renderer.SwitchRenderAlgorythm();
+			}
+
 		}
 
 		private void World_ChunkRenderReady(object sender, ChunkEventArgs e)
 		{
 			_renderer.AddChunk(e.Chunk);
+		}
+
+		private void _renderer_ReRender(object sender, EventArgs e)
+		{
+			_world.ResendChunks();
 		}
 
 		private void GameWindow_KeyDown(object sender, KeyboardKeyEventArgs e)

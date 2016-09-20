@@ -6,6 +6,7 @@ namespace CubicEngine.Controller
 {
 	class KeyboardListener
 	{
+		Dictionary<Key, bool> KeyStatesBefore = new Dictionary<Key, bool>();
 		Dictionary<Key, bool> KeyStates = new Dictionary<Key, bool>();
 
 		public KeyboardListener()
@@ -20,6 +21,12 @@ namespace CubicEngine.Controller
 			KeyStates.Add(Key.Right, false);
 			KeyStates.Add(Key.Space, false);
 			KeyStates.Add(Key.ShiftLeft, false);
+
+			KeyStates.Add(Key.Q, false);
+			KeyStates.Add(Key.E, false);
+
+			KeyStatesBefore.Add(Key.Q, false);
+			KeyStatesBefore.Add(Key.E, false);
 		}
 
 		public void KeyDown(Key key)
@@ -64,6 +71,22 @@ namespace CubicEngine.Controller
 			if (KeyStates[Key.ShiftLeft])
 			{
 				movements.Add(KeyAction.MoveDown);
+			}
+			if (KeyStates[Key.Q] && !KeyStatesBefore[Key.Q])
+			{
+				movements.Add(KeyAction.SwitchMethod);
+			}
+			if (KeyStates[Key.E] && !KeyStatesBefore[Key.E])
+			{
+				movements.Add(KeyAction.SwitchAlgorythm);
+			}
+
+			foreach (Key key in KeyStates.Keys)
+			{
+				if (KeyStatesBefore.ContainsKey(key))
+				{
+					KeyStatesBefore[key] = KeyStates[key];
+				}
 			}
 
 			return movements;

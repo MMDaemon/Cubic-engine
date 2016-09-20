@@ -27,7 +27,7 @@ float CalculateLengthForDirection(in vec3 materialDirection)
 	{
 		maxDistVec.z = -0.5;
 	}
-	return dot(maxDistVec, materialDirection);
+	return dot(materialDirection, maxDistVec);
 }
 
 layout(std430, binding = 3) buffer materialLayout
@@ -56,7 +56,7 @@ out vec4 color;
 void main() 
 {
 	float materialDirectionLength = CalculateLengthForDirection(materialDirection);
-	float materialDirectionHeight = (dot(internalPosition, materialDirection) / materialDirectionLength) + 0.5;
+	float materialDirectionHeight = ((dot(materialDirection, internalPosition) / materialDirectionLength) + 1) /2;
 	//color = vec4(materialDirectionHeight, materialDirectionHeight, materialDirectionHeight, 1);
 
 	vec2 uv = vec2((uvPos.x + materials[materialOffset]) / totalMaterialCount, uvPos.y);

@@ -8,11 +8,18 @@ using GraphicsHelper.ShaderUtils;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics;
+using System;
 
 namespace CubicEngine.View
 {
 	internal class Renderer
 	{
+		public event EventHandler ReRender;
+
+		private int renderMethod = 0;
+		private int renderAlgorythm = 0;
+		private int[] algorythmCounts = new int[] { 2 };
+
 		private readonly Shader _shader;
 		private readonly Texture _materialTexture;
 		private readonly List<VertexArrayObject> _chunkVertexArrayObjects;
@@ -20,11 +27,14 @@ namespace CubicEngine.View
 		private readonly List<BufferObject> _materialBuffers;
 		private readonly List<BufferObject> _extentBuffers;
 
-
 		public CameraFirstPerson Camera { get; } = new CameraFirstPerson();
 
 		public Renderer()
 		{
+			Vector2 first = new Vector2(-0.125f, -0.125f);
+			Vector2 second = new Vector2(-0.625f, -0.875f);
+			double dotProduct = Vector2.Dot(first, second);
+			Console.WriteLine(new Vector2(-2.875f, -1.125f).Normalized());
 
 			Camera.FarClip = 500;
 			Camera.Position = new Vector3(0, 200, 0);
@@ -46,6 +56,24 @@ namespace CubicEngine.View
 
 			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
+			GL.ClearColor(new Color4(0.9f, 0.9f, 0.99f, 1));
+
+		}
+
+		public void SwitchRenderMethod()
+		{
+			renderMethod = (renderMethod + 1) % algorythmCounts.Length;
+			renderAlgorythm = 0;
+			ClearBuffers();
+			OnReRender();
+
+		}
+
+		public void SwitchRenderAlgorythm()
+		{
+			renderAlgorythm = (renderAlgorythm + 1) % algorythmCounts[renderMethod];
+			ClearBuffers();
+			OnReRender();
 		}
 
 		public void AddChunk(Chunk chunk)
@@ -87,6 +115,20 @@ namespace CubicEngine.View
 			_materialTexture.EndUse();
 
 			_shader.End();
+		}
+
+		protected virtual void OnReRender()
+		{
+			EventArgs e = new EventArgs();
+			ReRender?.Invoke(this, e);
+		}
+
+		private void ClearBuffers()
+		{
+			_chunkVertexArrayObjects.Clear();
+			_particleCounts.Clear();
+			_materialBuffers.Clear();
+			_extentBuffers.Clear();
 		}
 
 		private VertexArrayObject CreateVertexArrayObject(Mesh mesh)
@@ -165,10 +207,56 @@ namespace CubicEngine.View
 
 		private int[] GetMaterialsFromVoxel(out float[] extents, Chunk chunk, int x, int y, int z)
 		{
+			int[] materials;
+
+			switch (renderMethod)
+			{
+				case 0:
+
+					switch (renderAlgorythm)
+					{
+						case 0:
+
+							materials = GetOneWithMost(out extents, chunk, x, y, z);
+
+							break;
+
+						case 1:
+
+							materials = GetOneWithLeast(out extents, chunk, x, y, z);
+
+							break;
+
+						case 2:
+
+							materials = GetOneWithMost(out extents, chunk, x, y, z);
+
+							break;
+
+						default:
+
+							materials = GetOneWithMost(out extents, chunk, x, y, z);
+
+							break;
+					}
+
+					break;
+				default:
+
+					materials = GetOneWithMost(out extents, chunk, x, y, z);
+
+					break;
+			}
+
+			return materials;
+		}
+
+		private int[] GetOneWithMost(out float[] extents, Chunk chunk, int x, int y, int z)
+		{
 			List<int> materialList = new List<int>();
 			List<float> extentList = new List<float>();
 
-			Material currentMaterial = new Material(0, 0);
+			Material currentMaterial = new Material(0, -1);
 			foreach (Material material in chunk[x, y, z].Materials)
 			{
 				if (material.Amount > currentMaterial.Amount)
@@ -176,7 +264,29 @@ namespace CubicEngine.View
 					currentMaterial = material;
 				}
 			}
+
 			materialList.Add(currentMaterial.TypeId);
+			extentList.Add(1);
+
+			extents = extentList.ToArray();
+			return materialList.ToArray();
+		}
+
+		private int[] GetOneWithLeast(out float[] extents, Chunk chunk, int x, int y, int z)
+		{
+			List<int> materialList = new List<int>();
+			List<float> extentList = new List<float>();
+
+			Material leastMaterial = new Material(0, Constants.MaxAmount + 1);
+			foreach (Material material in chunk[x, y, z].Materials)
+			{
+				if (material.Amount < leastMaterial.Amount)
+				{
+					leastMaterial = material;
+				}
+			}
+
+			materialList.Add(leastMaterial.TypeId);
 			extentList.Add(1);
 
 			extents = extentList.ToArray();
