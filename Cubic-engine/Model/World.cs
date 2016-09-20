@@ -340,8 +340,6 @@ namespace CubicEngine.Model
 
 							Dictionary<int, int> materials = new Dictionary<int, int>();
 
-							bool surface = false;
-
 							for (int i = -1; i <= 1; i++)
 							{
 								for (int j = -1; j <= 1; j++)
@@ -350,10 +348,8 @@ namespace CubicEngine.Model
 									{
 										if ((i != 0 || j != 0 || k != 0) && (i == 0 || j == 0 || k == 0))
 										{
-											int amount = 64;
 											try
 											{
-												amount = createVoxels[x + i, y + j, z + k].Materials.Amount;
 												foreach (Material material in createVoxels[x + i, y + j, z + k].Materials)
 												{
 													if (!materials.ContainsKey(material.TypeId))
@@ -380,16 +376,24 @@ namespace CubicEngine.Model
 													}
 												}
 											}
-
-											if (amount == 0)
-											{
-												surface = true;
-											}
-
 										}
 									}
 								}
 							}
+							bool surface = false;
+
+							foreach (Vector3I direction in Constants.DirectionVectors)
+							{
+								try
+								{
+									if (createVoxels[x + direction.X, y + direction.Y, z + direction.Z].Materials.Amount == 0)
+									{
+										surface = true;
+									}
+								}
+								catch (Exception) { }
+							}
+
 							voxels[x, y, z].Surface = surface;
 
 							foreach (KeyValuePair<int, int> material in materials)
@@ -397,7 +401,7 @@ namespace CubicEngine.Model
 								voxels[x, y, z].Materials.Add(material.Key, material.Value / 18 / 2);
 							}
 
-							if (voxels[x, y, z].Materials.Contains("Dirt"))
+							if (voxels[x, y, z].Materials.Contains("Dirt") && surface)
 							{
 								voxels[x, y, z].Materials.Remove("Dirt", 1);
 								voxels[x, y, z].Materials.Add("Grass", 1);

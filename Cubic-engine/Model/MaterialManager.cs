@@ -41,6 +41,11 @@ namespace CubicEngine.Model
 			return materialId;
 		}
 
+		public string GetMaterialName(int materialId)
+		{
+			return _materialTypes[materialId].Name;
+		}
+
 		public Bitmap GetMaterialsAsBitmap()
 		{
 			Bitmap bitmap = new Bitmap(_materialTypes.Count, 1);

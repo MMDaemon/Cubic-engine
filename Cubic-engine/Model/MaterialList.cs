@@ -125,5 +125,27 @@ namespace CubicEngine.Model
 				return amount;
 			}
 		}
+
+		public Dictionary<int, float> GetMaterialDistribution()
+		{
+			Dictionary<int, float> materialDistribution = new Dictionary<int, float>();
+
+			foreach (KeyValuePair<int, int> material in _materials)
+			{
+				materialDistribution.Add(material.Key, (float)material.Value / Amount);
+			}
+
+			return materialDistribution;
+		}
+
+		public override string ToString()
+		{
+			string text = "(";
+			foreach(KeyValuePair<int,int> material in _materials)
+			{
+				text+= string.Format("{0}: {1}; ",_materialManager.GetMaterialName(material.Key),material.Value);
+			}
+			return text+")";
+		}
 	}
 }

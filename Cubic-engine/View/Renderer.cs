@@ -16,9 +16,9 @@ namespace CubicEngine.View
 	{
 		public event EventHandler ReRender;
 
-		private int renderMethod = 0;
-		private int renderAlgorythm = 0;
-		private int[] algorythmCounts = new int[] { 2 };
+		private int _renderMethod;
+		private int _renderAlgorythm;
+		private readonly int[] _algorythmCounts = new int[] { 4 };
 
 		private readonly Shader _shader;
 		private readonly Texture _materialTexture;
@@ -31,13 +31,10 @@ namespace CubicEngine.View
 
 		public Renderer()
 		{
-			Vector2 first = new Vector2(-0.125f, -0.125f);
-			Vector2 second = new Vector2(-0.625f, -0.875f);
-			double dotProduct = Vector2.Dot(first, second);
-			Console.WriteLine(new Vector2(-2.875f, -1.125f).Normalized());
-
 			Camera.FarClip = 500;
-			Camera.Position = new Vector3(0, 200, 0);
+			Camera.Position = new Vector3(6, 10, 30);
+			Camera.Heading -= (float)(0.32 * Math.PI);
+			Camera.Tilt += (float)(0.1 * Math.PI);
 
 			var sVertex = Encoding.UTF8.GetString(Shaders.vertex);
 			var sFragment = Encoding.UTF8.GetString(Shaders.fragment);
@@ -62,8 +59,8 @@ namespace CubicEngine.View
 
 		public void SwitchRenderMethod()
 		{
-			renderMethod = (renderMethod + 1) % algorythmCounts.Length;
-			renderAlgorythm = 0;
+			_renderMethod = (_renderMethod + 1) % _algorythmCounts.Length;
+			_renderAlgorythm = 0;
 			ClearBuffers();
 			OnReRender();
 
@@ -71,7 +68,7 @@ namespace CubicEngine.View
 
 		public void SwitchRenderAlgorythm()
 		{
-			renderAlgorythm = (renderAlgorythm + 1) % algorythmCounts[renderMethod];
+			_renderAlgorythm = (_renderAlgorythm + 1) % _algorythmCounts[_renderMethod];
 			ClearBuffers();
 			OnReRender();
 		}
@@ -155,9 +152,9 @@ namespace CubicEngine.View
 			int offset = 0;
 			for (int x = 0; x < Constants.ChunkSize.X; x++)
 			{
-				for (int y = 0; y < Constants.ChunkSize.Y; y++)
+				for (int z = 0; z < Constants.ChunkSize.Z; z++)
 				{
-					for (int z = 0; z < Constants.ChunkSize.Z; z++)
+					for (int y = 0; y < Constants.ChunkSize.Y; y++)
 					{
 						if (chunk[x, y, z].Surface)
 						{
@@ -209,11 +206,11 @@ namespace CubicEngine.View
 		{
 			int[] materials;
 
-			switch (renderMethod)
+			switch (_renderMethod)
 			{
 				case 0:
 
-					switch (renderAlgorythm)
+					switch (_renderAlgorythm)
 					{
 						case 0:
 
@@ -229,7 +226,13 @@ namespace CubicEngine.View
 
 						case 2:
 
-							materials = GetOneWithMost(out extents, chunk, x, y, z);
+							materials = GetOneBySurrounding(out extents, chunk, x, y, z);
+
+							break;
+
+						case 3:
+
+							materials = GetOneBySixSurrounding(out extents, chunk, x, y, z);
 
 							break;
 
@@ -291,6 +294,324 @@ namespace CubicEngine.View
 
 			extents = extentList.ToArray();
 			return materialList.ToArray();
+		}
+
+		private int[] GetOneBySurrounding(out float[] extents, Chunk chunk, int x, int y, int z)
+		{
+			Vector3I voxelPosition = new Vector3I(x, y, z);
+
+			List<int> materialList = new List<int>();
+			List<float> extentList = new List<float>();
+
+			List<Vector3I> visibleNeighborPositions = new List<Vector3I> { voxelPosition };
+			List<Vector3I> restNeighborPositions = new List<Vector3I>();
+
+			#region fill lists
+
+			foreach (Vector3I direction in Constants.DirectionVectors)
+			{
+				Vector3I neighborVector = voxelPosition + direction;
+				if (chunk[neighborVector].Materials.Amount > 0)
+				{
+					restNeighborPositions.Add(neighborVector);
+				}
+			}
+
+			foreach (Vector3I direction in Constants.DiagonalDirectionVectors)
+			{
+				Vector3I neighborVector = voxelPosition + direction;
+				if (chunk[neighborVector].Materials.Amount > 0)
+				{
+					restNeighborPositions.Add(neighborVector);
+				}
+			}
+
+			foreach (Vector3I direction in Constants.DirectionVectors)
+			{
+				if (chunk[voxelPosition + direction].Materials.Amount == 0)
+				{
+					Vector3I[] neighborToFacePositions = GetNeighborsToFace(chunk, direction, voxelPosition);
+
+					foreach (Vector3I position in neighborToFacePositions)
+					{
+						if (restNeighborPositions.Remove(position))
+						{
+							visibleNeighborPositions.Add(position);
+						}
+					}
+				}
+			}
+
+			#endregion
+
+			Dictionary<int, float> visibleAverageDistribution = GetAverageDistribution(chunk, visibleNeighborPositions);
+			Dictionary<int, float> restAverageDistribution = GetAverageDistribution(chunk, restNeighborPositions);
+
+			int currentMaterial = 0;
+			float currentValue = float.MinValue;
+			foreach (Material material in chunk[voxelPosition].Materials)
+			{
+				float value = visibleAverageDistribution[material.TypeId] / (restAverageDistribution.ContainsKey(material.TypeId) ? restAverageDistribution[material.TypeId] : 0.00001f);
+
+				if (value > currentValue)
+				{
+					currentValue = value;
+					currentMaterial = material.TypeId;
+				}
+			}
+
+			materialList.Add(currentMaterial);
+			extentList.Add(1);
+
+			extents = extentList.ToArray();
+			return materialList.ToArray();
+		}
+
+		private int[] GetOneBySixSurrounding(out float[] extents, Chunk chunk, int x, int y, int z)
+		{
+			Vector3I voxelPosition = new Vector3I(x, y, z);
+
+			List<int> materialList = new List<int>();
+			List<float> extentList = new List<float>();
+
+			Dictionary<int, float> averageValues = new Dictionary<int, float>();
+
+			foreach (Vector3I currentDirection in Constants.DirectionVectors)
+			{
+				if (chunk[voxelPosition + currentDirection].Materials.Amount == 0)
+				{
+					List<Vector3I> visibleNeighborPositions = new List<Vector3I> { voxelPosition };
+					List<Vector3I> restNeighborPositions = new List<Vector3I>();
+
+					#region fill lists
+
+					foreach (Vector3I direction in Constants.DirectionVectors)
+					{
+						Vector3I neighborVector = voxelPosition + direction;
+						if (chunk[neighborVector].Materials.Amount > 0)
+						{
+							restNeighborPositions.Add(neighborVector);
+						}
+					}
+
+					foreach (Vector3I direction in Constants.DiagonalDirectionVectors)
+					{
+						Vector3I neighborVector = voxelPosition + direction;
+						if (chunk[neighborVector].Materials.Amount > 0)
+						{
+							restNeighborPositions.Add(neighborVector);
+						}
+					}
+
+					Vector3I[] neighborToFacePositions = GetNeighborsToFace(chunk, currentDirection, voxelPosition);
+
+					foreach (Vector3I position in neighborToFacePositions)
+					{
+						if (restNeighborPositions.Remove(position))
+						{
+							visibleNeighborPositions.Add(position);
+						}
+					}
+
+					#endregion
+
+					Dictionary<int, float> visibleAverageDistribution = GetAverageDistribution(chunk, visibleNeighborPositions);
+					Dictionary<int, float> restAverageDistribution = GetAverageDistribution(chunk, restNeighborPositions);
+
+					foreach (Material material in chunk[voxelPosition].Materials)
+					{
+						float value = visibleAverageDistribution[material.TypeId] / (restAverageDistribution.ContainsKey(material.TypeId) ? restAverageDistribution[material.TypeId] : 0.00001f);
+
+						if (averageValues.ContainsKey(material.TypeId))
+						{
+							averageValues[material.TypeId] += value;
+						}
+						else
+						{
+							averageValues.Add(material.TypeId, value);
+						}
+					}
+				}
+			}
+
+			int currentMaterial = 0;
+			float currentValue = 0;
+			foreach (KeyValuePair<int, float> material in averageValues)
+			{
+				if (currentValue < material.Value)
+				{
+					currentValue = material.Value;
+					currentMaterial = material.Key;
+				}
+			}
+
+			extentList.Add(1);
+			materialList.Add(currentMaterial);
+
+			extents = extentList.ToArray();
+			return materialList.ToArray();
+		}
+
+		private int[] GetSixBySurrounding(out float[] extents, Chunk chunk, int x, int y, int z)
+		{
+			Vector3I voxelPosition = new Vector3I(x, y, z);
+
+			List<int> materialList = new List<int>();
+			List<float> extentList = new List<float>();
+
+			foreach (Vector3I currentDirection in Constants.DirectionVectors)
+			{
+				if (chunk[voxelPosition + currentDirection].Materials.Amount == 0)
+				{
+					List<Vector3I> visibleNeighborPositions = new List<Vector3I> { voxelPosition };
+					List<Vector3I> restNeighborPositions = new List<Vector3I>();
+
+					#region fill lists
+
+					foreach (Vector3I direction in Constants.DirectionVectors)
+					{
+						Vector3I neighborVector = voxelPosition + direction;
+						if (chunk[neighborVector].Materials.Amount > 0)
+						{
+							restNeighborPositions.Add(neighborVector);
+						}
+					}
+
+					foreach (Vector3I direction in Constants.DiagonalDirectionVectors)
+					{
+						Vector3I neighborVector = voxelPosition + direction;
+						if (chunk[neighborVector].Materials.Amount > 0)
+						{
+							restNeighborPositions.Add(neighborVector);
+						}
+					}
+
+
+					Vector3I[] neighborToFacePositions = GetNeighborsToFace(chunk, currentDirection, voxelPosition);
+
+					foreach (Vector3I position in neighborToFacePositions)
+					{
+						if (restNeighborPositions.Remove(position))
+						{
+							visibleNeighborPositions.Add(position);
+						}
+					}
+
+
+					#endregion
+
+					Dictionary<int, float> visibleAverageDistribution = GetAverageDistribution(chunk, visibleNeighborPositions);
+					Dictionary<int, float> restAverageDistribution = GetAverageDistribution(chunk, restNeighborPositions);
+
+					int currentMaterial = 0;
+					float currentValue = float.MinValue;
+					foreach (Material material in chunk[voxelPosition].Materials)
+					{
+						float value = visibleAverageDistribution[material.TypeId] / (restAverageDistribution.ContainsKey(material.TypeId) ? restAverageDistribution[material.TypeId] : 0.00001f);
+
+						if (value > currentValue)
+						{
+							currentValue = value;
+							currentMaterial = material.TypeId;
+						}
+					}
+
+					materialList.Add(currentMaterial);
+					extentList.Add(1);
+				}
+			}
+
+			extents = extentList.ToArray();
+			return materialList.ToArray();
+		}
+
+		private Dictionary<int, float> GetAverageDistribution(Chunk chunk, List<Vector3I> positions)
+		{
+			Dictionary<int, float> averageDistribution = new Dictionary<int, float>();
+
+			Dictionary<int, float> materialDistribution = new Dictionary<int, float>();
+			foreach (Vector3I position in positions)
+			{
+				Dictionary<int, float> distribution = chunk[position].Materials.GetMaterialDistribution();
+
+				foreach (KeyValuePair<int, float> material in distribution)
+				{
+					if (materialDistribution.ContainsKey(material.Key))
+					{
+						materialDistribution[material.Key] += material.Value;
+					}
+					else
+					{
+						materialDistribution.Add(material.Key, material.Value);
+					}
+				}
+			}
+			foreach (KeyValuePair<int, float> material in materialDistribution)
+			{
+				averageDistribution.Add(material.Key, material.Value / positions.Count);
+			}
+
+			return averageDistribution;
+		}
+
+		private Vector3I[] GetNeighborsToFace(Chunk chunk, Vector3I direction, Vector3I voxelPosition)
+		{
+			List<Vector3I> neighbors = new List<Vector3I>();
+
+			Vector3I currentVector;
+
+			List<Vector3I> orthogonals = new List<Vector3I>();
+
+			if (direction.X != 0)
+			{
+				orthogonals.Add(new Vector3I(0, 1, 0));
+				orthogonals.Add(new Vector3I(0, -1, 0));
+				orthogonals.Add(new Vector3I(0, 0, 1));
+				orthogonals.Add(new Vector3I(0, 0, -1));
+				orthogonals.Add(new Vector3I(0, 1, 1));
+				orthogonals.Add(new Vector3I(0, 1, -1));
+				orthogonals.Add(new Vector3I(0, -1, 1));
+				orthogonals.Add(new Vector3I(0, -1, -1));
+			}
+
+			if (direction.Y != 0)
+			{
+				orthogonals.Add(new Vector3I(1, 0, 0));
+				orthogonals.Add(new Vector3I(-1, 0, 0));
+				orthogonals.Add(new Vector3I(0, 0, 1));
+				orthogonals.Add(new Vector3I(0, 0, -1));
+				orthogonals.Add(new Vector3I(1, 0, 1));
+				orthogonals.Add(new Vector3I(1, 0, -1));
+				orthogonals.Add(new Vector3I(-1, 0, 1));
+				orthogonals.Add(new Vector3I(-1, 0, -1));
+			}
+
+			if (direction.Z != 0)
+			{
+				orthogonals.Add(new Vector3I(1, 0, 0));
+				orthogonals.Add(new Vector3I(-1, 0, 0));
+				orthogonals.Add(new Vector3I(0, 1, 0));
+				orthogonals.Add(new Vector3I(0, -1, 0));
+				orthogonals.Add(new Vector3I(1, 1, 0));
+				orthogonals.Add(new Vector3I(1, -1, 0));
+				orthogonals.Add(new Vector3I(-1, 1, 0));
+				orthogonals.Add(new Vector3I(-1, -1, 0));
+			}
+
+			for (int i = 0; i < orthogonals.Count; i++)
+			{
+				currentVector = orthogonals[i];
+				if (chunk[voxelPosition + direction + currentVector].Materials.Amount > 0)
+				{
+					neighbors.Add(voxelPosition + direction + currentVector);
+				}
+				else if (chunk[voxelPosition + currentVector].Materials.Amount > 0)
+				{
+					neighbors.Add(voxelPosition + currentVector);
+				}
+			}
+
+			return neighbors.ToArray();
 		}
 	}
 }
