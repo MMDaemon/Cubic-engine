@@ -9,6 +9,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics;
 using System;
+using System.Linq;
 
 namespace CubicEngine.View
 {
@@ -18,7 +19,7 @@ namespace CubicEngine.View
 
 		private int _renderMethod;
 		private int _renderAlgorythm;
-		private readonly int[] _algorythmCounts = new int[] { 4 };
+		private readonly int[] _algorythmCounts = new int[] { 4, 4 };
 
 		private readonly Shader _shader;
 		private readonly Texture _materialTexture;
@@ -32,9 +33,9 @@ namespace CubicEngine.View
 		public Renderer()
 		{
 			Camera.FarClip = 500;
-			Camera.Position = new Vector3(6, 10, 30);
+			Camera.Position = new Vector3(15, 7, 21);
 			Camera.Heading -= (float)(0.32 * Math.PI);
-			Camera.Tilt += (float)(0.1 * Math.PI);
+			Camera.Tilt += (float)(0.08 * Math.PI);
 
 			var sVertex = Encoding.UTF8.GetString(Shaders.vertex);
 			var sFragment = Encoding.UTF8.GetString(Shaders.fragment);
@@ -173,11 +174,11 @@ namespace CubicEngine.View
 							{
 								materialDirection = new Vector3(0, 1, 0);
 							}
-							instanceMaterialDirections.Add(materialDirection.Normalized());
 
 							float[] currentExtents;
-							materials.AddRange(GetMaterialsFromVoxel(out currentExtents, chunk, x, y, z));
+							materials.AddRange(GetMaterialsFromVoxel(out currentExtents, ref materialDirection, chunk, x, y, z));
 							extents.AddRange(currentExtents);
+							instanceMaterialDirections.Add(materialDirection.Normalized());
 							instanceMaterialOffsets.Add(offset);
 							instanceMaterialCounts.Add(currentExtents.Length);
 							offset += currentExtents.Length;
@@ -202,8 +203,9 @@ namespace CubicEngine.View
 			_extentBuffers.Add(buffer);
 		}
 
-		private int[] GetMaterialsFromVoxel(out float[] extents, Chunk chunk, int x, int y, int z)
+		private int[] GetMaterialsFromVoxel(out float[] extents, ref Vector3 materialDirection, Chunk chunk, int x, int y, int z)
 		{
+			Vector3I voxelPosition = new Vector3I(x, y, z);
 			int[] materials;
 
 			switch (_renderMethod)
@@ -214,39 +216,96 @@ namespace CubicEngine.View
 					{
 						case 0:
 
-							materials = GetOneWithMost(out extents, chunk, x, y, z);
+							materials = GetOneWithMost(out extents, chunk, voxelPosition);
 
 							break;
 
 						case 1:
 
-							materials = GetOneWithLeast(out extents, chunk, x, y, z);
+							materials = GetOneWithLeast(out extents, chunk, voxelPosition);
 
 							break;
 
 						case 2:
 
-							materials = GetOneBySurrounding(out extents, chunk, x, y, z);
+							materials = GetOneBySurrounding(out extents, chunk, voxelPosition);
 
 							break;
 
 						case 3:
 
-							materials = GetOneBySixSurrounding(out extents, chunk, x, y, z);
+							materials = GetOneBySixSurrounding(out extents, chunk, voxelPosition);
 
 							break;
 
 						default:
 
-							materials = GetOneWithMost(out extents, chunk, x, y, z);
+							materials = GetOneWithMost(out extents, chunk, voxelPosition);
 
 							break;
 					}
 
 					break;
+
+				case 1:
+
+					switch (_renderAlgorythm)
+					{
+						case 0:
+
+							materials = GetOrderBySixSurrounding(out extents, out materialDirection, chunk, voxelPosition);
+
+							break;
+
+						case 1:
+
+							materials = GetOrderByDirections(out extents, out materialDirection, chunk, voxelPosition);
+
+							break;
+
+						case 2:
+
+							materials = GetOrderBySixSurrounding(out extents, out materialDirection, chunk, voxelPosition);
+							if (materials.Contains(3) && materials.Contains(1))
+							{
+								for (int i = 0; i < materials.Length; i++)
+								{
+									if (materials[i] == 1)
+									{
+										materials[i] = 3;
+									}
+								}
+							}
+							break;
+
+						case 3:
+
+							materials = GetOrderByDirections(out extents, out materialDirection, chunk, voxelPosition);
+							if (materials.Contains(3) && materials.Contains(1))
+							{
+								for (int i = 0; i < materials.Length; i++)
+								{
+									if (materials[i] == 1)
+									{
+										materials[i] = 3;
+									}
+								}
+							}
+
+							break;
+
+						default:
+
+							materials = GetOrderBySixSurrounding(out extents, out materialDirection, chunk, voxelPosition);
+
+							break;
+					}
+
+					break;
+
 				default:
 
-					materials = GetOneWithMost(out extents, chunk, x, y, z);
+					materials = GetOneWithMost(out extents, chunk, voxelPosition);
 
 					break;
 			}
@@ -254,13 +313,15 @@ namespace CubicEngine.View
 			return materials;
 		}
 
-		private int[] GetOneWithMost(out float[] extents, Chunk chunk, int x, int y, int z)
+		#region GetMaterial algorythms
+
+		private int[] GetOneWithMost(out float[] extents, Chunk chunk, Vector3I voxelPosition)
 		{
 			List<int> materialList = new List<int>();
 			List<float> extentList = new List<float>();
 
 			Material currentMaterial = new Material(0, -1);
-			foreach (Material material in chunk[x, y, z].Materials)
+			foreach (Material material in chunk[voxelPosition].Materials)
 			{
 				if (material.Amount > currentMaterial.Amount)
 				{
@@ -275,13 +336,13 @@ namespace CubicEngine.View
 			return materialList.ToArray();
 		}
 
-		private int[] GetOneWithLeast(out float[] extents, Chunk chunk, int x, int y, int z)
+		private int[] GetOneWithLeast(out float[] extents, Chunk chunk, Vector3I voxelPosition)
 		{
 			List<int> materialList = new List<int>();
 			List<float> extentList = new List<float>();
 
 			Material leastMaterial = new Material(0, Constants.MaxAmount + 1);
-			foreach (Material material in chunk[x, y, z].Materials)
+			foreach (Material material in chunk[voxelPosition].Materials)
 			{
 				if (material.Amount < leastMaterial.Amount)
 				{
@@ -296,10 +357,8 @@ namespace CubicEngine.View
 			return materialList.ToArray();
 		}
 
-		private int[] GetOneBySurrounding(out float[] extents, Chunk chunk, int x, int y, int z)
+		private int[] GetOneBySurrounding(out float[] extents, Chunk chunk, Vector3I voxelPosition)
 		{
-			Vector3I voxelPosition = new Vector3I(x, y, z);
-
 			List<int> materialList = new List<int>();
 			List<float> extentList = new List<float>();
 
@@ -367,10 +426,8 @@ namespace CubicEngine.View
 			return materialList.ToArray();
 		}
 
-		private int[] GetOneBySixSurrounding(out float[] extents, Chunk chunk, int x, int y, int z)
+		private int[] GetOneBySixSurrounding(out float[] extents, Chunk chunk, Vector3I voxelPosition)
 		{
-			Vector3I voxelPosition = new Vector3I(x, y, z);
-
 			List<int> materialList = new List<int>();
 			List<float> extentList = new List<float>();
 
@@ -452,10 +509,226 @@ namespace CubicEngine.View
 			return materialList.ToArray();
 		}
 
-		private int[] GetSixBySurrounding(out float[] extents, Chunk chunk, int x, int y, int z)
+		private int[] GetOrderBySixSurrounding(out float[] extents, out Vector3 materialDirection, Chunk chunk, Vector3I voxelPosition)
 		{
-			Vector3I voxelPosition = new Vector3I(x, y, z);
+			materialDirection = Vector3.Zero;
 
+			List<int> materialList = new List<int>();
+			List<float> extentList = new List<float>();
+
+			Dictionary<int, float> averageValues = new Dictionary<int, float>();
+
+			Dictionary<Vector3I, Dictionary<int, float>> averageDistributions = new Dictionary<Vector3I, Dictionary<int, float>>();
+
+			foreach (Vector3I currentDirection in Constants.DirectionVectors)
+			{
+				if (chunk[voxelPosition + currentDirection].Materials.Amount == 0)
+				{
+					List<Vector3I> visibleNeighborPositions = new List<Vector3I> { voxelPosition };
+					List<Vector3I> restNeighborPositions = new List<Vector3I>();
+
+					#region fill lists
+
+					foreach (Vector3I direction in Constants.DirectionVectors)
+					{
+						Vector3I neighborVector = voxelPosition + direction;
+						if (chunk[neighborVector].Materials.Amount > 0)
+						{
+							restNeighborPositions.Add(neighborVector);
+						}
+					}
+
+					foreach (Vector3I direction in Constants.DiagonalDirectionVectors)
+					{
+						Vector3I neighborVector = voxelPosition + direction;
+						if (chunk[neighborVector].Materials.Amount > 0)
+						{
+							restNeighborPositions.Add(neighborVector);
+						}
+					}
+
+					Vector3I[] neighborToFacePositions = GetNeighborsToFace(chunk, currentDirection, voxelPosition);
+
+					foreach (Vector3I position in neighborToFacePositions)
+					{
+						if (restNeighborPositions.Remove(position))
+						{
+							visibleNeighborPositions.Add(position);
+						}
+					}
+
+					#endregion
+
+					Dictionary<int, float> visibleAverageDistribution = GetAverageDistribution(chunk, visibleNeighborPositions);
+					Dictionary<int, float> restAverageDistribution = GetAverageDistribution(chunk, restNeighborPositions);
+
+					Dictionary<int, float> averageDistribution = new Dictionary<int, float>();
+
+					foreach (Material material in chunk[voxelPosition].Materials)
+					{
+						float value = visibleAverageDistribution[material.TypeId] / (restAverageDistribution.ContainsKey(material.TypeId) ? restAverageDistribution[material.TypeId] : 0.00001f);
+
+						averageDistribution.Add(material.TypeId, value);
+
+						if (averageValues.ContainsKey(material.TypeId))
+						{
+							averageValues[material.TypeId] += value;
+						}
+						else
+						{
+							averageValues.Add(material.TypeId, value);
+						}
+					}
+
+					averageDistributions.Add(currentDirection, averageDistribution);
+				}
+			}
+
+			List<KeyValuePair<int, float>> sortList = averageValues.ToList();
+
+			sortList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
+
+			for (int i = sortList.Count - 1; i >= 0; i--)
+			{
+				extentList.Add((float)chunk[voxelPosition].Materials[sortList[i].Key] / chunk[voxelPosition].Materials.Amount);
+				materialList.Add(sortList[i].Key);
+			}
+
+			foreach (Vector3I currentDirection in Constants.DirectionVectors)
+			{
+				if (averageDistributions.ContainsKey(currentDirection))
+				{
+					materialDirection -= (Vector3)currentDirection * averageDistributions[currentDirection][materialList[0]];
+				}
+			}
+
+			extents = extentList.ToArray();
+			return materialList.ToArray();
+		}
+
+		private int[] GetOrderByDirections(out float[] extents, out Vector3 materialDirection, Chunk chunk, Vector3I voxelPosition)
+		{
+			Dictionary<int, Vector3> materialVectors = new Dictionary<int, Vector3>();
+
+			foreach (Material material in chunk[voxelPosition].Materials)
+			{
+				foreach (Vector3I direction in Constants.DiagonalDirectionVectors)
+				{
+					if (chunk[voxelPosition + direction].Materials.Contains(material.TypeId))
+					{
+						Vector3 currentVector = (Vector3)direction * chunk[voxelPosition + direction].Materials[material.TypeId];
+						if (materialVectors.ContainsKey(material.TypeId))
+						{
+							materialVectors[material.TypeId] += currentVector;
+						}
+						else
+						{
+							materialVectors.Add(material.TypeId, currentVector);
+						}
+					}
+				}
+
+				if (materialVectors.ContainsKey(material.TypeId))
+				{
+					if (!materialVectors[material.TypeId].Equals(Vector3.Zero))
+					{
+						materialVectors[material.TypeId] = materialVectors[material.TypeId].Normalized();
+					}
+				}
+				else
+				{
+					materialVectors.Add(material.TypeId, Vector3.Zero);
+				}
+
+				if (materialVectors[material.TypeId].Equals(Vector3.Zero))
+				{
+					foreach (Vector3I direction in Constants.DirectionVectors)
+					{
+						if (chunk[voxelPosition + direction].Materials.Amount == 0)
+						{
+							materialVectors[material.TypeId] = (Vector3)direction;
+							break;
+						}
+					}
+				}
+			}
+
+			List<int> materialList = new List<int>();
+			List<float> extentList = new List<float>();
+
+
+			int currentFirst = materialVectors.First().Key;
+
+			if (materialVectors.Count > 1)
+			{
+
+				float currentAngle = 0;
+				int currentLast = 0;
+				foreach (Material material1 in chunk[voxelPosition].Materials)
+				{
+					foreach (Material material2 in chunk[voxelPosition].Materials)
+					{
+						if (material1.TypeId != material2.TypeId)
+						{
+							float angle = Vector3.CalculateAngle(materialVectors[material1.TypeId], materialVectors[material2.TypeId]);
+							if (angle > currentAngle)
+							{
+								currentAngle = angle;
+								if (chunk[voxelPosition].Materials[material1.TypeId] < chunk[voxelPosition].Materials[material2.TypeId])
+								{
+									currentFirst = material1.TypeId;
+									currentLast = material2.TypeId;
+								}
+								else
+								{
+									currentFirst = material2.TypeId;
+									currentLast = material1.TypeId;
+								}
+							}
+						}
+					}
+				}
+
+				materialList.Add(currentFirst);
+				extentList.Add((float)chunk[voxelPosition].Materials[currentFirst] / chunk[voxelPosition].Materials.Amount);
+
+				Dictionary<int, float> materialAngles = new Dictionary<int, float>();
+
+				foreach (Material material in chunk[voxelPosition].Materials)
+				{
+					if (material.TypeId != currentFirst && material.TypeId != currentLast)
+					{
+						materialAngles.Add(material.TypeId,
+							Vector3.CalculateAngle(materialVectors[material.TypeId], materialVectors[currentFirst]));
+					}
+				}
+
+				List<KeyValuePair<int, float>> sortList = materialAngles.ToList();
+
+				sortList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
+
+				foreach (KeyValuePair<int, float> pair in sortList)
+				{
+					materialList.Add(pair.Key);
+					extentList.Add((float)chunk[voxelPosition].Materials[pair.Key] / chunk[voxelPosition].Materials.Amount);
+				}
+
+				materialList.Add(currentLast);
+				extentList.Add((float)chunk[voxelPosition].Materials[currentLast] / chunk[voxelPosition].Materials.Amount);
+			}
+			else
+			{
+				materialList.Add(currentFirst);
+				extentList.Add((float)chunk[voxelPosition].Materials[currentFirst] / chunk[voxelPosition].Materials.Amount);
+			}
+
+			materialDirection = -materialVectors[currentFirst];
+			extents = extentList.ToArray();
+			return materialList.ToArray();
+		}
+
+		private int[] GetSixBySurrounding(out float[] extents, Chunk chunk, Vector3I voxelPosition)
+		{
 			List<int> materialList = new List<int>();
 			List<float> extentList = new List<float>();
 
@@ -524,6 +797,8 @@ namespace CubicEngine.View
 			extents = extentList.ToArray();
 			return materialList.ToArray();
 		}
+
+		#endregion
 
 		private Dictionary<int, float> GetAverageDistribution(Chunk chunk, List<Vector3I> positions)
 		{
@@ -598,9 +873,9 @@ namespace CubicEngine.View
 				orthogonals.Add(new Vector3I(-1, -1, 0));
 			}
 
-			for (int i = 0; i < orthogonals.Count; i++)
+			foreach (Vector3I orthogonal in orthogonals)
 			{
-				currentVector = orthogonals[i];
+				currentVector = orthogonal;
 				if (chunk[voxelPosition + direction + currentVector].Materials.Amount > 0)
 				{
 					neighbors.Add(voxelPosition + direction + currentVector);

@@ -55,6 +55,11 @@ namespace CubicEngine.Utils
 			return new Vector3I(vec1.X * vec2.X, vec1.Y * vec2.Y, vec1.Z * vec2.Z);
 		}
 
+		public static Vector3I operator *(Vector3I vec, int value)
+		{
+			return new Vector3I(vec.X * value, vec.Y * value, vec.Z * value);
+		}
+
 		public static Vector3I operator /(Vector3I vec1, Vector3I vec2)
 		{
 			return new Vector3I(vec1.X / vec2.X, vec1.Y / vec2.Y, vec1.Z / vec2.Z);

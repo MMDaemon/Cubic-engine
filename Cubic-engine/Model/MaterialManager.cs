@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CubicEngine.Resources;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
@@ -48,11 +49,21 @@ namespace CubicEngine.Model
 
 		public Bitmap GetMaterialsAsBitmap()
 		{
-			Bitmap bitmap = new Bitmap(_materialTypes.Count, 1);
-			foreach (KeyValuePair<int, MaterialType> entry in _materialTypes)
+			Bitmap bitmap = null;
+
+			for (int i = 0; i < _materialTypes.Count; i++)
 			{
-				bitmap.SetPixel(entry.Key, 0, entry.Value.Color);
+				Bitmap texture = (Bitmap)Textures.ResourceManager.GetObject(_materialTypes[i].Name);
+
+				if (bitmap == null)
+				{
+					bitmap = new Bitmap(_materialTypes.Count * texture.Width, texture.Height);
+				}
+
+				Graphics g = Graphics.FromImage(bitmap);
+				g.DrawImage(texture, new Point(i * texture.Width, 0));
 			}
+
 			return bitmap;
 		}
 

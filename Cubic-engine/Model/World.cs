@@ -362,7 +362,7 @@ namespace CubicEngine.Model
 													}
 												}
 											}
-											catch (Exception)
+											catch (IndexOutOfRangeException)
 											{
 												foreach (Material material in createVoxels[x, y, z].Materials)
 												{
@@ -391,7 +391,7 @@ namespace CubicEngine.Model
 										surface = true;
 									}
 								}
-								catch (Exception) { }
+								catch (IndexOutOfRangeException) { }
 							}
 
 							voxels[x, y, z].Surface = surface;
